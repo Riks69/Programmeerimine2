@@ -21,7 +21,8 @@ namespace KooliProjekt.Controllers
         // GET: Bookings
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Bookings.ToListAsync());
+            return View(await _context.Bookings.GetPagedAsync());
+            int page = 1;
         }
 
         // GET: Bookings/Details/5
