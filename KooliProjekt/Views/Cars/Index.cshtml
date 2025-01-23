@@ -1,9 +1,8 @@
-﻿@model IEnumerable<KooliProjekt.Data.Car>
+﻿@model PagedResult<KooliProjekt.Data.Car>
 
 @{
     ViewData["Title"] = "Index";
 }
-
 <h1>Index</h1>
 
 <p>
@@ -31,7 +30,7 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+@foreach (var item in Model.Results) {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.Type)
@@ -57,3 +56,5 @@
 }
     </tbody>
 </table>
+
+@(await Component.InvokeAsync<PagerViewComponent>(Model))
