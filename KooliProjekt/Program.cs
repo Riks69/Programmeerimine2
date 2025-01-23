@@ -19,6 +19,11 @@ namespace KooliProjekt
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
+            builder.Services.AddScoped<ICar, ClientsService>();
+            builder.Services.AddScoped<IEventsService, EventsService>();
+            builder.Services.AddScoped<IOrganizerService, OrganizerService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+            builder.Services.AddScoped<IRegisteringService, RegisteringService>();
 
             var app = builder.Build();
 
@@ -46,6 +51,16 @@ namespace KooliProjekt
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
             app.MapRazorPages();
+#if DEBUG
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                context.Database.Migrate();
+                SeedData.GenerateCategories(context);
+                SeedData.GenerateClients(context);
+                SeedData.GenerateOrganizers(context);
+            }
+#endif
 
             app.Run();
         }
