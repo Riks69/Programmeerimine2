@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace KooliProjekt.Data
@@ -37,16 +38,16 @@ namespace KooliProjekt.Data
 
         public static void GenerateCustomers(ApplicationDbContext context)
         {
-            // Check if the Categories table is empty
+            // Check if the Customers table is empty
             if (context.Customers.Any())
             {
                 return; // If data exists, don't do anything
             }
 
-            var Customers = new List<Customer>
- {
+            var customers = new List<Customer>
+    {
         new Customer { Id = 101, Name = "Urmas Karumets", Email = "Urmaskarumets@gmail.com", IsRegistered = true },
-        new Customer { Id = 102, Name = "Andreas Õunmann", Email = "AndreasÕunmann@gmail.com",IsRegistered = true },
+        new Customer { Id = 102, Name = "Andreas Õunmann", Email = "AndreasÕunmann@gmail.com", IsRegistered = true },
         new Customer { Id = 103, Name = "Andri Lombard", Email = "AndriLombard@gmail.com", IsRegistered = true },
         new Customer { Id = 104, Name = "Marco Soosaar", Email = "MarcoSoosaar@gmail.com", IsRegistered = true },
         new Customer { Id = 105, Name = "Karl Kalender", Email = "KarlKalender@gmail.com", IsRegistered = true },
@@ -55,13 +56,14 @@ namespace KooliProjekt.Data
         new Customer { Id = 108, Name = "Jürgen Kass", Email = "JürgenKass@gmail.com", IsRegistered = true },
         new Customer { Id = 109, Name = "Jacob Loop", Email = "JacobLoop@gmail.com", IsRegistered = true },
         new Customer { Id = 110, Name = "Vambola Koljat", Email = "VambolaKoljat@gmail.com", IsRegistered = true }
-
     };
 
-            context.Customers.AddRange(Customers);
+
+            context.Customers.AddRange(customers);
 
             context.SaveChanges();
         }
+
         public static void GenerateBookings(ApplicationDbContext context)
         {
             // Check if the Categories table is empty
