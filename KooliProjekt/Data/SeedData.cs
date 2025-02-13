@@ -46,16 +46,16 @@ namespace KooliProjekt.Data
 
             var customers = new List<Customer>
     {
-        new Customer { Id = 101, Name = "Urmas Karumets", Email = "Urmaskarumets@gmail.com", IsRegistered = true },
-        new Customer { Id = 102, Name = "Andreas Õunmann", Email = "AndreasÕunmann@gmail.com", IsRegistered = true },
-        new Customer { Id = 103, Name = "Andri Lombard", Email = "AndriLombard@gmail.com", IsRegistered = true },
-        new Customer { Id = 104, Name = "Marco Soosaar", Email = "MarcoSoosaar@gmail.com", IsRegistered = true },
-        new Customer { Id = 105, Name = "Karl Kalender", Email = "KarlKalender@gmail.com", IsRegistered = true },
-        new Customer { Id = 106, Name = "Üllar Suvi", Email = "ÜllarSuvi@gmail.com", IsRegistered = true },
-        new Customer { Id = 107, Name = "Peeter Tamm", Email = "PeeterTamm@gmail.com", IsRegistered = true },
-        new Customer { Id = 108, Name = "Jürgen Kass", Email = "JürgenKass@gmail.com", IsRegistered = true },
-        new Customer { Id = 109, Name = "Jacob Loop", Email = "JacobLoop@gmail.com", IsRegistered = true },
-        new Customer { Id = 110, Name = "Vambola Koljat", Email = "VambolaKoljat@gmail.com", IsRegistered = true }
+        new Customer { Name = "Urmas Karumets", Email = "Urmaskarumets@gmail.com", IsRegistered = true, Password = "1234" },
+        new Customer { Name = "Andreas Õunmann", Email = "AndreasÕunmann@gmail.com", IsRegistered = true, Password = "1243"},
+        new Customer { Name = "Andri Lombard", Email = "AndriLombard@gmail.com", IsRegistered = true, Password = "4321" },
+        new Customer { Name = "Marco Soosaar", Email = "MarcoSoosaar@gmail.com", IsRegistered = true, Password = "4213" },
+        new Customer { Name = "Karl Kalender", Email = "KarlKalender@gmail.com", IsRegistered = true, Password = "2341" },
+        new Customer { Name = "Üllar Suvi", Email = "ÜllarSuvi@gmail.com", IsRegistered = true, Password = "2134" },
+        new Customer { Name = "Peeter Tamm", Email = "PeeterTamm@gmail.com", IsRegistered = true, Password = "2431" },
+        new Customer { Name = "Jürgen Kass", Email = "JürgenKass@gmail.com", IsRegistered = true, Password = "3214" },
+        new Customer { Name = "Jacob Loop", Email = "JacobLoop@gmail.com", IsRegistered = true, Password = "3143" },
+        new Customer { Name = "Vambola Koljat", Email = "VambolaKoljat@gmail.com", IsRegistered = true, Password = "4124" }
     };
 
 
