@@ -6,22 +6,23 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KooliProjekt.Data;
+using KooliProjekt.Services;
 
 namespace KooliProjekt.Controllers
 {
     public class BookingsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IBookingService _booking;
 
-        public BookingsController(ApplicationDbContext context)
+        public BookingsController(IBookingService booking)
         {
-            _context = context;
+            _booking = booking;
         }
 
         // GET: Bookings
         public async Task<IActionResult> Index(int page = 1)
         {
-            return View(await _context.Bookings.GetPagedAsync(page, 5));
+            return View(await _booking.List(page, 5));
         }
 
         // GET: Bookings/Details/5
@@ -32,8 +33,7 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var booking = await _context.Bookings
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var booking = await _booking.Get(id.Value);
             if (booking == null)
             {
                 return NotFound();
@@ -57,8 +57,7 @@ namespace KooliProjekt.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(booking);
-                await _context.SaveChangesAsync();
+                await _booking.Save(booking); 
                 return RedirectToAction(nameof(Index));
             }
             return View(booking);
@@ -72,7 +71,7 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var booking = await _context.Bookings.FindAsync(id);
+            var booking = await _booking.Get(id.Value);
             if (booking == null)
             {
                 return NotFound();
@@ -96,12 +95,11 @@ namespace KooliProjekt.Controllers
             {
                 try
                 {
-                    _context.Update(booking);
-                    await _context.SaveChangesAsync();
+                   await _booking.Save(booking);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!BookingExists(booking.Id))
+                    if (!await BookingExists(booking.Id))
                     {
                         return NotFound();
                     }
@@ -123,8 +121,7 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var booking = await _context.Bookings
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var booking = await _booking.Get(id.Value);
             if (booking == null)
             {
                 return NotFound();
@@ -138,19 +135,18 @@ namespace KooliProjekt.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var booking = await _context.Bookings.FindAsync(id);
+            var booking = await _booking.Get(id);
             if (booking != null)
             {
-                _context.Bookings.Remove(booking);
+                await _booking.Delete(id);
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool BookingExists(int id)
+        private async Task<bool> BookingExists(int id)
         {
-            return _context.Bookings.Any(e => e.Id == id);
+            return _booking.Get(id) != null;
         }
     }
 }

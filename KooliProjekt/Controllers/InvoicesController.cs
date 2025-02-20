@@ -6,22 +6,23 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KooliProjekt.Data;
+using KooliProjekt.Services;
 
 namespace KooliProjekt.Controllers
 {
     public class InvoicesController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IInvoiceService _invoice;
 
-        public InvoicesController(ApplicationDbContext context)
+        public InvoicesController(IInvoiceService invoice)
         {
-            _context = context;
+            _invoice = invoice;
         }
 
         // GET: Invoices
         public async Task<IActionResult> Index(int page = 1)
         {
-            return View(await _context.Invoices.GetPagedAsync(page, 5));
+            return View(await _invoice.List(page, 5));
         }
 
         // GET: Invoices/Details/5
@@ -32,8 +33,7 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var invoice = await _context.Invoices
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var invoice = await _invoice.Get(id.Value);
             if (invoice == null)
             {
                 return NotFound();
@@ -53,12 +53,11 @@ namespace KooliProjekt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,BookingId,Amount,Description,IsPaid")] Invoice invoice)
+        public async Task<IActionResult> Create([Bind("Id,UserId,CarId,StartTime,EndTime,DistanceKm,IsCompleted")] Invoice invoice)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(invoice);
-                await _context.SaveChangesAsync();
+                await _invoice.Save(invoice);
                 return RedirectToAction(nameof(Index));
             }
             return View(invoice);
@@ -72,7 +71,7 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var invoice = await _context.Invoices.FindAsync(id);
+            var invoice = await _invoice.Get(id.Value);
             if (invoice == null)
             {
                 return NotFound();
@@ -85,7 +84,7 @@ namespace KooliProjekt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,BookingId,Amount,Description,IsPaid")] Invoice invoice)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,CarId,StartTime,EndTime,DistanceKm,IsCompleted")] Invoice invoice)
         {
             if (id != invoice.Id)
             {
@@ -96,12 +95,11 @@ namespace KooliProjekt.Controllers
             {
                 try
                 {
-                    _context.Update(invoice);
-                    await _context.SaveChangesAsync();
+                    await _invoice.Save(invoice);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!InvoiceExists(invoice.Id))
+                    if (!await InvoiceExists(invoice.Id))
                     {
                         return NotFound();
                     }
@@ -123,8 +121,7 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var invoice = await _context.Invoices
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var invoice = await _invoice.Get(id.Value);
             if (invoice == null)
             {
                 return NotFound();
@@ -138,19 +135,18 @@ namespace KooliProjekt.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var invoice = await _context.Invoices.FindAsync(id);
+            var invoice = await _invoice.Get(id);
             if (invoice != null)
             {
-                _context.Invoices.Remove(invoice);
+                await _invoice.Delete(id);
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool InvoiceExists(int id)
+        private async Task<bool> InvoiceExists(int id)
         {
-            return _context.Invoices.Any(e => e.Id == id);
+            return _invoice.Get(id) != null;
         }
     }
 }
