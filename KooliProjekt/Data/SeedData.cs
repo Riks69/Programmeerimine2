@@ -91,5 +91,32 @@ namespace KooliProjekt.Data
 
             context.SaveChanges();
         }
+        public static void GenerateInvoices(ApplicationDbContext context)
+        {
+            // Check if the Categories table is empty
+            if (context.Invoices.Any())
+            {
+                return; // If data exists, don't do anything
+            }
+
+            var Invoice = new List<Invoice>
+            {
+                new Invoice { BookingId = 1, Amount = 35, Description = "a", IsPaid = true },
+                new Invoice { BookingId = 2, Amount = 36, Description = "b", IsPaid = true },
+                new Invoice { BookingId = 3, Amount = 37, Description = "c", IsPaid = true },
+                new Invoice { BookingId = 4, Amount = 38, Description = "d", IsPaid = true },
+                new Invoice { BookingId = 5, Amount = 39, Description = "e", IsPaid = true },
+                new Invoice { BookingId = 6, Amount = 40, Description = "f", IsPaid = true },
+                new Invoice { BookingId = 7, Amount = 41, Description = "g", IsPaid = true },
+                new Invoice { BookingId = 8, Amount = 42, Description = "h", IsPaid = true },
+                new Invoice { BookingId = 9, Amount = 43, Description = "i", IsPaid = true },
+                new Invoice { BookingId = 10, Amount = 44, Description = "j", IsPaid = true }
+
+            };
+
+            context.Invoices.AddRange(Invoice);
+
+            context.SaveChanges();
+        }
     }
 }
