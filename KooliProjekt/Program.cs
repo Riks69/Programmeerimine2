@@ -1,4 +1,5 @@
 using KooliProjekt.Data;
+using KooliProjekt.Data.Repositories;
 using KooliProjekt.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,13 @@ namespace KooliProjekt
             builder.Services.AddScoped<ICarService, CarService>();
             builder.Services.AddScoped<IBookingService, BookingService>();
             builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+            builder.Services.AddScoped<ICarRepository, CarRepository>();
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+            builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -59,6 +67,7 @@ namespace KooliProjekt
                 SeedData.GenerateCategories(context);
                 SeedData.GenerateCustomers(context);
                 SeedData.GenerateBookings(context);
+                SeedData.GenerateInvoices(context);
             }
 #endif
 

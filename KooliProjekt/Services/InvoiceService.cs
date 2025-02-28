@@ -1,49 +1,36 @@
 ﻿using KooliProjekt.Data;
+using KooliProjekt.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Services
 {
     public class InvoiceService : IInvoiceService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _uof;
 
-        public InvoiceService(ApplicationDbContext context)
+        public InvoiceService(IUnitOfWork uof)
         {
-            _context = context;
+            _uof = uof;
+        }
+
+        public async Task Delete(int Id)
+        {
+            await _uof.InvoiceRepository.Delete(Id);
+        }
+
+        public async Task<Invoice> Get(int Id)
+        {
+            return await _uof.InvoiceRepository.Get((int)Id);
         }
 
         public async Task<PagedResult<Invoice>> List(int page, int pageSize)
         {
-            return await _context.Invoices.GetPagedAsync(page, 5);
+            return await _uof.InvoiceRepository.List(page, pageSize);
         }
 
-        public async Task<Invoice> Get(int id)
+        public async Task Save(Invoice invoice)
         {
-            return await _context.Invoices.FirstOrDefaultAsync(m => m.Id == id);
-        }
-
-        public async Task Save(Invoice list)
-        {
-            if (list.Id == 0)
-            {
-                _context.Add(list);
-            }
-            else
-            {
-                _context.Update(list);
-            }
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task Delete(int id)
-        {
-            var invoice = await _context.Invoices.FindAsync(id);
-            if (invoice != null)
-            {
-                _context.Invoices.Remove(invoice);
-                await _context.SaveChangesAsync();
-            }
+            await _uof.InvoiceRepository.Save(invoice);
         }
     }
 }

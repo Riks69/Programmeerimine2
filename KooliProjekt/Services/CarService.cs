@@ -1,49 +1,36 @@
 ﻿using KooliProjekt.Data;
+using KooliProjekt.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Services
 {
     public class CarService : ICarService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _uof;
 
-        public CarService(ApplicationDbContext context)
+        public CarService(IUnitOfWork uof)
         {
-            _context = context;
+            _uof = uof;
+        }
+
+        public async Task Delete(int Id)
+        {
+            await _uof.CarRepository.Delete(Id);
+        }
+
+        public async Task<Car> Get(int Id)
+        {
+            return await _uof.CarRepository.Get((int)Id);
         }
 
         public async Task<PagedResult<Car>> List(int page, int pageSize)
         {
-            return await _context.Cars.GetPagedAsync(page, 5);
+            return await _uof.CarRepository.List(page, pageSize);
         }
 
-        public async Task<Car> Get(int id)
+        public async Task Save(Car car)
         {
-            return await _context.Cars.FirstOrDefaultAsync(m => m.Id == id);
-        }
-
-        public async Task Save(Car list)
-        {
-            if (list.Id == 0)
-            {
-                _context.Add(list);
-            }
-            else
-            {
-                _context.Update(list);
-            }
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task Delete(int id)
-        {
-            var car = await _context.Cars.FindAsync(id);
-            if (car != null)
-            {
-                _context.Cars.Remove(car);
-                await _context.SaveChangesAsync();
-            }
+            await _uof.CarRepository.Save(car);
         }
     }
 }

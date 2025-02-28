@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.Identity.Client;
+using System.ComponentModel.DataAnnotations;
 
 namespace KooliProjekt.Data
 {
-    public class Customer
+    public class Customer : Entity
     {
         public int Id { get; set; }
         [Required]

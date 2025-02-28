@@ -1,49 +1,36 @@
 ﻿using KooliProjekt.Data;
+using KooliProjekt.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Services
 {
     public class BookingService : IBookingService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _uof;
 
-        public BookingService(ApplicationDbContext context)
+        public BookingService(IUnitOfWork uof)
         {
-            _context = context;
+            _uof = uof;
+        }
+
+        public async Task Delete(int Id)
+        {
+            await _uof.BookingRepository.Delete(Id);
+        }
+
+        public async Task<Booking> Get(int Id)
+        {
+            return await _uof.BookingRepository.Get((int)Id);
         }
 
         public async Task<PagedResult<Booking>> List(int page, int pageSize)
         {
-            return await _context.Bookings.GetPagedAsync(page, 5);
+            return await _uof.BookingRepository.List(page, pageSize);
         }
 
-        public async Task<Booking> Get(int id)
+        public async Task Save(Booking booking)
         {
-            return await _context.Bookings.FirstOrDefaultAsync(m => m.Id == id);
-        }
-
-        public async Task Save(Booking list)
-        {
-            if (list.Id == 0)
-            {
-                _context.Add(list);
-            }
-            else
-            {
-                _context.Update(list);
-            }
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task Delete(int id)
-        {
-            var booking = await _context.Bookings.FindAsync(id);
-            if (booking != null)
-            {
-                _context.Bookings.Remove(booking);
-                await _context.SaveChangesAsync();
-            }
+            await _uof.BookingRepository.Save(booking);
         }
     }
 }

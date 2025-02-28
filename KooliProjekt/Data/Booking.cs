@@ -2,7 +2,7 @@
 
 namespace KooliProjekt.Data
 {
-    public class Booking
+    public class Booking : Entity
     {
         public int Id { get; set; }
         [Required]

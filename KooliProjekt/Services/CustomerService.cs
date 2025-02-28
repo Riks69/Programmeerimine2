@@ -1,49 +1,36 @@
 ﻿using KooliProjekt.Data;
+using KooliProjekt.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Services
 {
     public class CustomerService : ICustomerService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _uof;
 
-        public CustomerService(ApplicationDbContext context)
+        public CustomerService(IUnitOfWork uof)
         {
-            _context = context;
+            _uof = uof;
+        }
+
+        public async Task Delete(int Id)
+        {
+            await _uof.CustomerRepository.Delete(Id);
+        }
+
+        public async Task<Customer> Get(int Id)
+        {
+            return await _uof.CustomerRepository.Get((int)Id);
         }
 
         public async Task<PagedResult<Customer>> List(int page, int pageSize)
         {
-            return await _context.Customers.GetPagedAsync(page, 5);
+            return await _uof.CustomerRepository.List(page, pageSize);
         }
 
-        public async Task<Customer> Get(int id)
+        public async Task Save(Customer customer)
         {
-            return await _context.Customers.FirstOrDefaultAsync(m => m.Id == id);
-        }
-
-        public async Task Save(Customer list)
-        {
-            if (list.Id == 0)
-            {
-                _context.Add(list);
-            }
-            else
-            {
-                _context.Update(list);
-            }
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task Delete(int id)
-        {
-            var customer = await _context.Customers.FindAsync(id);
-            if (customer != null)
-            {
-                _context.Customers.Remove(customer);
-                await _context.SaveChangesAsync();
-            }
+            await _uof.CustomerRepository.Save(customer);
         }
     }
 }
