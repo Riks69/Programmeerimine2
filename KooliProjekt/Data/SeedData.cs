@@ -74,16 +74,16 @@ namespace KooliProjekt.Data
 
             var Booking = new List<Booking>
             {
-                new Booking { Id = 201, UserId = 1, StartTime = new DateTime(2024, 11, 25, 9, 0, 0), EndTime = new DateTime(2024, 11, 28, 9, 0, 0), DistanceKm = 200, IsCompleted = true },
-                new Booking { Id = 202, UserId = 2, StartTime = new DateTime(2024, 2, 6, 9, 0, 0), EndTime = new DateTime(2024, 2, 10, 9, 0, 0), DistanceKm = 195, IsCompleted = true },
-                new Booking { Id = 203, UserId = 3, StartTime = new DateTime(2024, 12, 13, 8, 0, 0), EndTime = new DateTime(2024, 12, 17, 8, 0, 0), DistanceKm = 124, IsCompleted = true },
-                new Booking { Id = 204, UserId = 4, StartTime = new DateTime(2024, 1, 5, 12, 0, 0), EndTime = new DateTime(2024, 1, 7, 12, 0, 0), DistanceKm = 153, IsCompleted = true },
-                new Booking { Id = 205, UserId = 5, StartTime = new DateTime(2024, 6, 15, 9, 0, 0), EndTime = new DateTime(2024, 6, 22, 9, 0, 0), DistanceKm = 123, IsCompleted = true },
-                new Booking { Id = 206, UserId = 6, StartTime = new DateTime(2024, 7, 23, 10, 0, 0), EndTime = new DateTime(2024, 7, 24, 10, 0, 0), DistanceKm = 652, IsCompleted = true },
-                new Booking { Id = 207, UserId = 7, StartTime = new DateTime(2024, 3, 18, 18, 0, 0), EndTime = new DateTime(2024, 3, 20, 18, 0, 0), DistanceKm = 127, IsCompleted = true },
-                new Booking { Id = 208, UserId = 8, StartTime = new DateTime(2024, 4, 3, 12, 0, 0), EndTime = new DateTime(2024, 4, 8, 12, 0, 0), DistanceKm = 173, IsCompleted = true },
-                new Booking { Id = 209, UserId = 9, StartTime = new DateTime(2024, 8, 17, 18, 0, 0), EndTime = new DateTime(2024, 8, 21, 18, 0, 0), DistanceKm = 92, IsCompleted = true },
-                new Booking { Id = 210, UserId = 10, StartTime = new DateTime(2024, 10, 27, 11, 0, 0), EndTime = new DateTime(2024, 10, 30, 11, 0, 0), DistanceKm = 182, IsCompleted = true }
+                new Booking { UserId = 1, StartTime = new DateTime(2024, 11, 25, 9, 0, 0), EndTime = new DateTime(2024, 11, 28, 9, 0, 0), DistanceKm = 200, IsCompleted = true },
+                new Booking { UserId = 2, StartTime = new DateTime(2024, 2, 6, 9, 0, 0), EndTime = new DateTime(2024, 2, 10, 9, 0, 0), DistanceKm = 195, IsCompleted = true },
+                new Booking { UserId = 3, StartTime = new DateTime(2024, 12, 13, 8, 0, 0), EndTime = new DateTime(2024, 12, 17, 8, 0, 0), DistanceKm = 124, IsCompleted = true },
+                new Booking { UserId = 4, StartTime = new DateTime(2024, 1, 5, 12, 0, 0), EndTime = new DateTime(2024, 1, 7, 12, 0, 0), DistanceKm = 153, IsCompleted = true },
+                new Booking { UserId = 5, StartTime = new DateTime(2024, 6, 15, 9, 0, 0), EndTime = new DateTime(2024, 6, 22, 9, 0, 0), DistanceKm = 123, IsCompleted = true },
+                new Booking { UserId = 6, StartTime = new DateTime(2024, 7, 23, 10, 0, 0), EndTime = new DateTime(2024, 7, 24, 10, 0, 0), DistanceKm = 652, IsCompleted = true },
+                new Booking { UserId = 7, StartTime = new DateTime(2024, 3, 18, 18, 0, 0), EndTime = new DateTime(2024, 3, 20, 18, 0, 0), DistanceKm = 127, IsCompleted = true },
+                new Booking { UserId = 8, StartTime = new DateTime(2024, 4, 3, 12, 0, 0), EndTime = new DateTime(2024, 4, 8, 12, 0, 0), DistanceKm = 173, IsCompleted = true },
+                new Booking { UserId = 9, StartTime = new DateTime(2024, 8, 17, 18, 0, 0), EndTime = new DateTime(2024, 8, 21, 18, 0, 0), DistanceKm = 92, IsCompleted = true },
+                new Booking { UserId = 10, StartTime = new DateTime(2024, 10, 27, 11, 0, 0), EndTime = new DateTime(2024, 10, 30, 11, 0, 0), DistanceKm = 182, IsCompleted = true }
 
             };
 

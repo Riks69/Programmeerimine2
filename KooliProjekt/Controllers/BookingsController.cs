@@ -7,14 +7,15 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KooliProjekt.Data;
 using KooliProjekt.Services;
+using KooliProjekt.Data.Repositories;
 
 namespace KooliProjekt.Controllers
 {
     public class BookingsController : Controller
     {
-        private readonly IBookingService _booking;
+        private readonly IBookingRepository _booking;
 
-        public BookingsController(IBookingService booking)
+        public BookingsController(IBookingRepository booking)
         {
             _booking = booking;
         }
