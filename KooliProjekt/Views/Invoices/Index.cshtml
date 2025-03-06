@@ -1,13 +1,25 @@
-﻿@model PagedResult<KooliProjekt.Data.Invoice>
+﻿@model InvoiceIndexModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Invoice";
 }
 <h1>Index</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+
+<form method="get">
+    <div class="form-group">
+        <label class="control-label">Keyword</label>
+        <input asp-for="Search.Keyword" class="form-control" />
+    </div>
+    <div class="form-group">
+        <button class="btn btn-primary">Search</button>
+        <a asp-controller="Invoices" asp-action="Index" class="btn btn-secondary">Reset</a>
+    </div>
+</form>
+
 <table class="table">
     <thead>
         <tr>
@@ -27,7 +39,7 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model.Results) {
+@foreach (var item in Model.Data.Results) {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.BookingId)
@@ -51,4 +63,4 @@
     </tbody>
 </table>
 
-@(await Component.InvokeAsync<PagerViewComponent>(Model))
+@(await Component.InvokeAsync<PagerViewComponent>(Model.Data))

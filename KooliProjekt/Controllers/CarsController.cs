@@ -7,22 +7,27 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KooliProjekt.Data;
 using KooliProjekt.Services;
+using KooliProjekt.Models;
+using KooliProjekt.Search;
 
 namespace KooliProjekt.Controllers
 {
     public class CarsController : Controller
     {
-        private readonly ICarService _car;
+        private readonly ICarService _carService;
 
-        public CarsController(ICarService car)
+        public CarsController(ICarService carService)
         {
-            _car = car;
+            _carService = carService;
         }
 
         // GET: Cars
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(int page = 1, CarIndexModel model = null)
         {
-            return View(await _car.List(page, 5));
+            model = model ?? new CarIndexModel();
+            model.Data = await _carService.List(page, 5, model.Search);
+
+            return View(model);
         }
 
         // GET: Cars/Details/5
@@ -33,7 +38,7 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var car = await _car.Get(id.Value);
+            var car = await _carService.Get(id.Value);
             if (car == null)
             {
                 return NotFound();
@@ -53,14 +58,15 @@ namespace KooliProjekt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Type,RegistrationNumber,HourlyRate,KmRate,IsAvaliable")] Car car)
+        public async Task<IActionResult> Create([Bind("Id,Title")] Car Car)
         {
             if (ModelState.IsValid)
             {
-                await _car.Save(car);
+                await _carService.Save(Car);
+
                 return RedirectToAction(nameof(Index));
             }
-            return View(car);
+            return View(Car);
         }
 
         // GET: Cars/Edit/5
@@ -71,12 +77,12 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var car = await _car.Get(id.Value);
-            if (car == null)
+            var todoList = await _carService.Get(id.Value);
+            if (todoList == null)
             {
                 return NotFound();
             }
-            return View(car);
+            return View(todoList);
         }
 
         // POST: Cars/Edit/5
@@ -84,33 +90,19 @@ namespace KooliProjekt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Type,RegistrationNumber,HourlyRate,KmRate,IsAvaliable")] Car car)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title")] Car Car)
         {
-            if (id != car.Id)
+            if (id != Car.Id)
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    await _car.Save(car);
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await CarExists(car.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await _carService.Save(Car);
                 return RedirectToAction(nameof(Index));
             }
-            return View(car);
+            return View(Car);
         }
 
         // GET: Cars/Delete/5
@@ -121,7 +113,7 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var car = await _car.Get(id.Value);
+            var car = await _carService.Get(id.Value);
             if (car == null)
             {
                 return NotFound();
@@ -135,18 +127,9 @@ namespace KooliProjekt.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var car = await _car.Get(id);
-            if (car != null)
-            {
-                await _car.Delete(id);
-            }
+            await _carService.Delete(id);
 
             return RedirectToAction(nameof(Index));
-        }
-
-        private async Task<bool> CarExists(int id)
-        {
-            return _car.Get(id) != null;
         }
     }
 }

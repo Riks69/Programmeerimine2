@@ -1,4 +1,5 @@
 ﻿using KooliProjekt.Data;
+using KooliProjekt.Search;
 using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Services
@@ -12,9 +13,22 @@ namespace KooliProjekt.Services
             _context = context;
         }
 
-        public async Task<PagedResult<Booking>> List(int page, int pageSize)
+        public async Task<PagedResult<Booking>> List(int page, int pageSize, BookingSearch search = null)
         {
-            return await _context.Bookings.GetPagedAsync(page, 5);
+            var query = _context.Bookings.AsQueryable();
+
+            if (search != null && !string.IsNullOrEmpty(search.Keyword))
+            {
+                query = query.Where(h =>
+                    EF.Functions.Like(h.UserId.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.CarId.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.EndTime.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.DistanceKm.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.StartTime.ToString(), $"%{search.Keyword}%"));
+
+            }
+
+            return await query.GetPagedAsync(page, pageSize);
         }
 
         public async Task<Booking> Get(int id)

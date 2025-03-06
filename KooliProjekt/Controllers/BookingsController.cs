@@ -7,22 +7,27 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KooliProjekt.Data;
 using KooliProjekt.Services;
+using KooliProjekt.Models;
+using KooliProjekt.Search;
 
 namespace KooliProjekt.Controllers
 {
     public class BookingsController : Controller
     {
-        private readonly IBookingService _booking;
+        private readonly IBookingService _bookingService;
 
-        public BookingsController(IBookingService booking)
+        public BookingsController(IBookingService bookingService)
         {
-            _booking = booking;
+            _bookingService = bookingService;
         }
 
         // GET: Bookings
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(int page = 1, BookingIndexModel model = null)
         {
-            return View(await _booking.List(page, 5));
+            model = model ?? new BookingIndexModel();
+            model.Data = await _bookingService.List(page, 5, model.Search);
+
+            return View(model);
         }
 
         // GET: Bookings/Details/5
@@ -33,7 +38,7 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var booking = await _booking.Get(id.Value);
+            var booking = await _bookingService.Get(id.Value);
             if (booking == null)
             {
                 return NotFound();
@@ -53,14 +58,15 @@ namespace KooliProjekt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserId,CarId,StartTime,EndTime,DistanceKm,IsCompleted")] Booking booking)
+        public async Task<IActionResult> Create([Bind("Id,Title")] Booking Booking)
         {
             if (ModelState.IsValid)
             {
-                await _booking.Save(booking); 
+                await _bookingService.Save(Booking);
+
                 return RedirectToAction(nameof(Index));
             }
-            return View(booking);
+            return View(Booking);
         }
 
         // GET: Bookings/Edit/5
@@ -71,12 +77,12 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var booking = await _booking.Get(id.Value);
-            if (booking == null)
+            var todoList = await _bookingService.Get(id.Value);
+            if (todoList == null)
             {
                 return NotFound();
             }
-            return View(booking);
+            return View(todoList);
         }
 
         // POST: Bookings/Edit/5
@@ -84,33 +90,19 @@ namespace KooliProjekt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,CarId,StartTime,EndTime,DistanceKm,IsCompleted")] Booking booking)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title")] Booking Booking)
         {
-            if (id != booking.Id)
+            if (id != Booking.Id)
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                   await _booking.Save(booking);
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await BookingExists(booking.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await _bookingService.Save(Booking);
                 return RedirectToAction(nameof(Index));
             }
-            return View(booking);
+            return View(Booking);
         }
 
         // GET: Bookings/Delete/5
@@ -121,7 +113,7 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var booking = await _booking.Get(id.Value);
+            var booking = await _bookingService.Get(id.Value);
             if (booking == null)
             {
                 return NotFound();
@@ -135,18 +127,9 @@ namespace KooliProjekt.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var booking = await _booking.Get(id);
-            if (booking != null)
-            {
-                await _booking.Delete(id);
-            }
+            await _bookingService.Delete(id);
 
             return RedirectToAction(nameof(Index));
-        }
-
-        private async Task<bool> BookingExists(int id)
-        {
-            return _booking.Get(id) != null;
         }
     }
 }

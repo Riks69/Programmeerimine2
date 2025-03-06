@@ -1,4 +1,5 @@
 ﻿using KooliProjekt.Data;
+using KooliProjekt.Search;
 using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Services
@@ -12,9 +13,21 @@ namespace KooliProjekt.Services
             _context = context;
         }
 
-        public async Task<PagedResult<Invoice>> List(int page, int pageSize)
+        public async Task<PagedResult<Invoice>> List(int page, int pageSize, InvoiceSearch search = null)
         {
-            return await _context.Invoices.GetPagedAsync(page, 5);
+            var query = _context.Invoices.AsQueryable();
+
+            if (search != null && !string.IsNullOrEmpty(search.Keyword))
+            {
+                query = query.Where(h =>
+                    EF.Functions.Like(h.BookingId.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.Amount.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.Description.ToString(), $"%{search.Keyword}%"));
+
+
+            }
+
+            return await query.GetPagedAsync(page, pageSize);
         }
 
         public async Task<Invoice> Get(int id)
