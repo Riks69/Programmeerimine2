@@ -7,15 +7,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KooliProjekt.Data;
 using KooliProjekt.Services;
-using KooliProjekt.Data.Repositories;
 
 namespace KooliProjekt.Controllers
 {
     public class CarsController : Controller
     {
-        private readonly ICarRepository _car;
+        private readonly ICarService _car;
 
-        public CarsController(ICarRepository car)
+        public CarsController(ICarService car)
         {
             _car = car;
         }

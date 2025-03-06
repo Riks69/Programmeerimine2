@@ -7,15 +7,13 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KooliProjekt.Data;
 using KooliProjekt.Services;
-using KooliProjekt.Data.Repositories;
-
 namespace KooliProjekt.Controllers
 {
     public class InvoicesController : Controller
     {
-        private readonly IInvoiceRepository _invoice;
+        private readonly IInvoiceService _invoice;
 
-        public InvoicesController(IInvoiceRepository invoice)
+        public InvoicesController(IInvoiceService invoice)
         {
             _invoice = invoice;
         }
