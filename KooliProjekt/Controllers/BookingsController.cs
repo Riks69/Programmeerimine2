@@ -77,12 +77,12 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var todoList = await _bookingService.Get(id.Value);
-            if (todoList == null)
+            var booking = await _bookingService.Get(id.Value);
+            if (booking == null)
             {
                 return NotFound();
             }
-            return View(todoList);
+            return View(booking);
         }
 
         // POST: Bookings/Edit/5
