@@ -1,6 +1,7 @@
 ﻿using KooliProjekt.Data;
 using KooliProjekt.Search;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace KooliProjekt.Services
 {
@@ -13,6 +14,25 @@ namespace KooliProjekt.Services
             _context = context;
         }
 
+        public async Task Delete(int? Id)
+        {
+            var booking = await _context.Bookings.FindAsync(Id);
+            if (booking != null)
+            {
+                _context.Bookings.Remove(booking);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<Booking> Get(int? Id)
+        {
+            return await _context.Bookings.FindAsync(Id);
+        }
+
+        public async Task<bool> Includes(int Id)
+        {
+            return await _context.Bookings.AnyAsync(c => c.Id == Id);
+        }
         public async Task<PagedResult<Booking>> List(int page, int pageSize, BookingSearch search = null)
         {
             var query = _context.Bookings.AsQueryable();
@@ -31,33 +51,28 @@ namespace KooliProjekt.Services
             return await query.GetPagedAsync(page, pageSize);
         }
 
-        public async Task<Booking> Get(int id)
-        {
-            return await _context.Bookings.FirstOrDefaultAsync(m => m.Id == id);
-        }
 
-        public async Task Save(Booking list)
+        public async Task Save(Booking booking)
         {
-            if (list.Id == 0)
+            if (booking.Id == 0)
             {
-                _context.Add(list);
+                _context.Bookings.Add(booking);
             }
             else
             {
-                _context.Update(list);
-            }
+                var existingBookings = await _context.Bookings.FindAsync(booking.Id);
 
+                if (existingBookings != null)
+                {
+                    // If it exists, update the entity
+                    _context.Entry(existingBookings).State = EntityState.Modified;
+                }
+                else
+                {
+                    _context.Bookings.Add(booking);
+                }
+            }
             await _context.SaveChangesAsync();
-        }
-
-        public async Task Delete(int id)
-        {
-            var booking = await _context.Bookings.FindAsync(id);
-            if (booking != null)
-            {
-                _context.Bookings.Remove(booking);
-                await _context.SaveChangesAsync();
-            }
         }
     }
 }

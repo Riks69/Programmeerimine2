@@ -58,14 +58,15 @@ namespace KooliProjekt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserId,CarId,StartTime,EndTime,DistanceKm,IsCompleted")] Invoice invoice)
+        public async Task<IActionResult> Create([Bind("Id,Title")] Invoice Invoice)
         {
             if (ModelState.IsValid)
             {
-                await _invoiceService.Save(invoice);
+                await _invoiceService.Save(Invoice);
+
                 return RedirectToAction(nameof(Index));
             }
-            return View(invoice);
+            return View(Invoice);
         }
 
         // GET: Invoices/Edit/5
@@ -76,12 +77,12 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var invoice = await _invoiceService.Get(id.Value);
-            if (invoice == null)
+            var todoList = await _invoiceService.Get(id.Value);
+            if (todoList == null)
             {
                 return NotFound();
             }
-            return View(invoice);
+            return View(todoList);
         }
 
         // POST: Invoices/Edit/5
@@ -89,33 +90,19 @@ namespace KooliProjekt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,CarId,StartTime,EndTime,DistanceKm,IsCompleted")] Invoice invoice)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title")] Invoice Invoice)
         {
-            if (id != invoice.Id)
+            if (id != Invoice.Id)
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    await _invoiceService.Save(invoice);
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await InvoiceExists(invoice.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await _invoiceService.Save(Invoice);
                 return RedirectToAction(nameof(Index));
             }
-            return View(invoice);
+            return View(Invoice);
         }
 
         // GET: Invoices/Delete/5
@@ -140,18 +127,9 @@ namespace KooliProjekt.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var invoice = await _invoiceService.Get(id);
-            if (invoice != null)
-            {
-                await _invoiceService.Delete(id);
-            }
+            await _invoiceService.Delete(id);
 
             return RedirectToAction(nameof(Index));
-        }
-
-        private async Task<bool> InvoiceExists(int id)
-        {
-            return _invoiceService.Get(id) != null;
         }
     }
 }

@@ -58,14 +58,15 @@ namespace KooliProjekt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Password,Email,IsRegistered")] Customer customer)
+        public async Task<IActionResult> Create([Bind("Id,Title")] Customer Customer)
         {
             if (ModelState.IsValid)
             {
-                await _customerService.Save(customer);
+                await _customerService.Save(Customer);
+
                 return RedirectToAction(nameof(Index));
             }
-            return View(customer);
+            return View(Customer);
         }
 
         // GET: Customers/Edit/5
@@ -76,12 +77,12 @@ namespace KooliProjekt.Controllers
                 return NotFound();
             }
 
-            var customer = await _customerService.Get(id.Value);
-            if (customer == null)
+            var todoList = await _customerService.Get(id.Value);
+            if (todoList == null)
             {
                 return NotFound();
             }
-            return View(customer);
+            return View(todoList);
         }
 
         // POST: Customers/Edit/5
@@ -89,33 +90,19 @@ namespace KooliProjekt.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Password,Email,IsRegistered")] Customer customer)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title")] Customer Customer)
         {
-            if (id != customer.Id)
+            if (id != Customer.Id)
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    await _customerService.Save(customer);
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await CustomerExists(customer.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await _customerService.Save(Customer);
                 return RedirectToAction(nameof(Index));
             }
-            return View(customer);
+            return View(Customer);
         }
 
         // GET: Customers/Delete/5
@@ -140,18 +127,9 @@ namespace KooliProjekt.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var customer = await _customerService.Get(id);
-            if (customer != null)
-            {
-                await _customerService.Delete(id);
-            }
+            await _customerService.Delete(id);
 
             return RedirectToAction(nameof(Index));
-        }
-
-        private async Task<bool> CustomerExists(int id)
-        {
-            return _customerService.Get(id) != null;
         }
     }
 }
