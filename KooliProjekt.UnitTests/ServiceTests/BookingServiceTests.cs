@@ -41,5 +41,47 @@ namespace KooliProjekt.UnitTests.ServiceTests
             // Assert
             Assert.Equal(pagedResult, result);
         }
+
+        [Fact]
+        public async Task Delete_should_call_delete_on_repository()
+        {
+            // Arrange
+            var bookingId = 1;
+
+            // Act
+            await _bookingService.Delete(bookingId);
+
+            // Assert
+            _repositoryMock.Verify(r => r.Delete(bookingId), Times.Once);
+        }
+
+        [Fact]
+        public async Task Get_should_return_booking_from_repository()
+        {
+            // Arrange
+            var bookingId = 1;
+            var expectedBooking = new Booking { Id = bookingId };
+            _repositoryMock.Setup(r => r.Get(bookingId)).ReturnsAsync(expectedBooking);
+
+            // Act
+            var result = await _bookingService.Get(bookingId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(bookingId, result.Id);
+        }
+
+        [Fact]
+        public async Task Save_should_call_save_on_repository()
+        {
+            // Arrange
+            var booking = new Booking { Id = 1 };
+
+            // Act
+            await _bookingService.Save(booking);
+
+            // Assert
+            _repositoryMock.Verify(r => r.Save(booking), Times.Once);
+        }
     }
 }
