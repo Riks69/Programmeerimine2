@@ -33,6 +33,7 @@ namespace KooliProjekt.Services
         {
             return await _context.Bookings.AnyAsync(c => c.Id == Id);
         }
+
         public async Task<PagedResult<Booking>> List(int page, int pageSize, BookingSearch search = null)
         {
             var query = _context.Bookings.AsQueryable();
@@ -45,12 +46,28 @@ namespace KooliProjekt.Services
                     EF.Functions.Like(h.EndTime.ToString(), $"%{search.Keyword}%") ||
                     EF.Functions.Like(h.DistanceKm.ToString(), $"%{search.Keyword}%") ||
                     EF.Functions.Like(h.StartTime.ToString(), $"%{search.Keyword}%"));
-
             }
 
             return await query.GetPagedAsync(page, pageSize);
         }
 
+        // Uus Search meetod
+        public async Task<List<Booking>> Search(BookingSearch search)
+        {
+            IQueryable<Booking> query = _context.Bookings;
+
+            if (search != null && !string.IsNullOrEmpty(search.Keyword))
+            {
+                query = query.Where(h =>
+                    EF.Functions.Like(h.UserId.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.CarId.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.EndTime.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.DistanceKm.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.StartTime.ToString(), $"%{search.Keyword}%"));
+            }
+
+            return await query.ToListAsync(); // Tagastab kõik vastavad broneeringud
+        }
 
         public async Task Save(Booking booking)
         {
