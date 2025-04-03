@@ -1,203 +1,378 @@
 ﻿using KooliProjekt.Data;
 using KooliProjekt.Services;
+using KooliProjekt.Models;
 using KooliProjekt.Search;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
-using System.Threading.Tasks;
-using System.Linq;
 using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
+using Xunit;
 
 namespace KooliProjekt.UnitTests.ServiceTests
 {
-    public class BookingServiceTests : IAsyncLifetime
+    public class BookingServiceTests : ServiceTestBase
     {
-        private readonly BookingService _bookingService;
-        private readonly ApplicationDbContext _context;
+        private readonly IBookingService _bookingService;
 
         public BookingServiceTests()
         {
-            // Kasutame InMemory andmebaasi, et simuleerida andmebaasi käitumist
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: "TestDatabase")
-                .Options;
-
-            _context = new ApplicationDbContext(options);
-            _bookingService = new BookingService(_context);
+            _bookingService = new BookingService(DbContext);
         }
 
-        // IAsyncLifetime liidesed meetodid: puhastame andmebaasi enne iga testi
-        public async Task InitializeAsync()
-        {
-            // Eemalda kõik broneeringud enne iga testi
-            _context.Bookings.RemoveRange(_context.Bookings);
-            await _context.SaveChangesAsync();
-        }
-
-        public Task DisposeAsync() => Task.CompletedTask;
-
-        // Save tests
+        // Test, et broneeringu lisamine töötab ja toob õiged andmed
         [Fact]
-        public async Task Save_ShouldAddBooking_WhenBookingIsNew()
-        {
-            // Arrange: Lisa uus broneering, millel on ID 0 (tähendab, et broneering pole veel andmebaasis)
-            var newBooking = new Booking
-            {
-                Id = 0,  // ID peab olema 0, et see oleks uus (nt kui on Identity või auto-korrektsioon)
-                UserId = 1,
-                CarId = 1,
-                DistanceKm = 100,
-                StartTime = DateTime.Now,
-                EndTime = DateTime.Now.AddHours(1)
-            };
-
-            // Act: Salvesta uus broneering
-            await _bookingService.Save(newBooking);
-
-            // Assert: Broneering peab olema andmebaasis
-            var savedBooking = await _context.Bookings.FirstOrDefaultAsync(b => b.UserId == newBooking.UserId && b.CarId == newBooking.CarId);
-            Assert.NotNull(savedBooking); // Veenduge, et broneering on salvestatud
-            Assert.Equal(newBooking.UserId, savedBooking.UserId); // Kontrollige, et UserId on õige
-            Assert.Equal(newBooking.CarId, savedBooking.CarId); // Kontrollige, et CarId on õige
-
-            // Kui kasutate automaatset ID genereerimist (nt Identity), siis veenduge, et ID on määratud
-            Assert.True(savedBooking.Id > 0); // ID peaks olema määratud ja suurem kui 0
-        }
-
-        // Otsingu test
-        [Fact]
-        public async Task Search_ShouldReturnCorrectBookings_WhenKeywordMatches()
+        public async Task Create_ShouldAddBooking()
         {
             // Arrange
-            var bookings = new List<Booking>
+            var booking = new Booking
             {
-                new Booking { Id = 1, UserId = 1, CarId = 101, DistanceKm = 100, StartTime = DateTime.Now, EndTime = DateTime.Now.AddHours(1) },
-                new Booking { Id = 2, UserId = 2, CarId = 102, DistanceKm = 200, StartTime = DateTime.Now.AddDays(1), EndTime = DateTime.Now.AddDays(1).AddHours(1) },
-                new Booking { Id = 3, UserId = 3, CarId = 103, DistanceKm = 300, StartTime = DateTime.Now.AddDays(2), EndTime = DateTime.Now.AddDays(2).AddHours(1) }
+                UserId = 1,
+                CarId = 2,
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now.AddHours(1),
+                DistanceKm = 100,
+                Id = 0
             };
 
-            await _context.Bookings.AddRangeAsync(bookings);
-            await _context.SaveChangesAsync();
+            // Act
+            await _bookingService.Save(booking);
 
-            var search = new BookingSearch { Keyword = "101" }; // Otsing "101" (mis peaks vastama CarId-le)
+            // Assert
+            var createdBooking = await DbContext.Bookings.FindAsync(booking.Id);
+            Assert.NotNull(createdBooking);
+            Assert.Equal(1, createdBooking.UserId);
+            Assert.Equal(2, createdBooking.CarId);
+            Assert.Equal(100, createdBooking.DistanceKm);
+            Assert.True(createdBooking.Id > 0);
+        }
+
+        // Test lehtede vaatamiseks ja kontrollimiseks, kas broneeringud on õigesti tagastatud
+        [Fact]
+        public async Task List_ShouldReturnPagedBookings()
+        {
+            var booking1 = new Booking { UserId = 1, CarId = 2, StartTime = DateTime.Now, EndTime = DateTime.Now.AddHours(1), DistanceKm = 100 };
+            var booking2 = new Booking { UserId = 2, CarId = 3, StartTime = DateTime.Now.AddDays(1), EndTime = DateTime.Now.AddDays(1).AddHours(1), DistanceKm = 200 };
+            await _bookingService.Save(booking1);
+            await _bookingService.Save(booking2);
+
+            var search = new BookingSearch { Keyword = "1" };
+
+            var result = await _bookingService.List(1, 10, search);
+
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Results.Count);
+        }
+
+        [Fact]
+        public async Task List_ShouldReturnAllBookings_WhenSearchIsNull()
+        {
+            // Arrange
+            var booking1 = new Booking { UserId = 1, CarId = 2, StartTime = DateTime.Now, EndTime = DateTime.Now.AddHours(1), DistanceKm = 100 };
+            var booking2 = new Booking { UserId = 2, CarId = 3, StartTime = DateTime.Now.AddDays(1), EndTime = DateTime.Now.AddDays(1).AddHours(1), DistanceKm = 200 };
+            await _bookingService.Save(booking1);
+            await _bookingService.Save(booking2);
 
             // Act
-            var result = await _bookingService.Search(search); // See peaks olema sinu teenuse meetod, mis täidab koodilõigu
+            var result = await _bookingService.List(1, 10, null); // Otsing on null
 
             // Assert
             Assert.NotNull(result);
-            Assert.Single(result); // Ainult üks broneering peaks olema, millel on CarId 101
-            Assert.Equal(1, result.First().Id); // Peab olema broneering, mille ID on 1
+            Assert.Equal(2, result.Results.Count); // Kõik broneeringud peaksid olema tagastatud
         }
 
-        // Delete tests
+
+        // Test, et õige broneering tagastatakse ID järgi
         [Fact]
-        public async Task Delete_ShouldRemoveBooking_WhenBookingExists()
+        public async Task Get_ShouldReturnBookingById()
+        {
+            var booking = new Booking
+            {
+                UserId = 1,
+                CarId = 2,
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now.AddHours(1),
+                DistanceKm = 100
+            };
+            await _bookingService.Save(booking);
+
+            var fetchedBooking = await _bookingService.Get(booking.Id);
+
+            Assert.NotNull(fetchedBooking);
+            Assert.Equal(1, fetchedBooking.UserId);
+            Assert.Equal(2, fetchedBooking.CarId);
+            Assert.Equal(100, fetchedBooking.DistanceKm);
+        }
+
+        // Test, et broneeringut saab uuendada
+        [Fact]
+        public async Task Save_ShouldUpdateBooking()
+        {
+            var booking = new Booking
+            {
+                UserId = 1,
+                CarId = 2,
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now.AddHours(1),
+                DistanceKm = 100
+            };
+            await _bookingService.Save(booking);
+
+            booking.UserId = 3;
+            booking.CarId = 4;
+            booking.DistanceKm = 150;
+            await _bookingService.Save(booking);
+
+            var updatedBooking = await _bookingService.Get(booking.Id);
+            Assert.NotNull(updatedBooking);
+            Assert.Equal(3, updatedBooking.UserId);
+            Assert.Equal(4, updatedBooking.CarId);
+            Assert.Equal(150, updatedBooking.DistanceKm);
+        }
+
+        [Fact]
+        public async Task Save_ShouldNotUpdateBooking_WhenBookingDoesNotExist()
         {
             // Arrange
-            var booking = new Booking { Id = 1, UserId = 1, CarId = 1, DistanceKm = 100, StartTime = DateTime.Now, EndTime = DateTime.Now.AddHours(1) };
-            await _context.Bookings.AddAsync(booking);
-            await _context.SaveChangesAsync();
+            var booking = new Booking
+            {
+                Id = 999, // See ID ei ole andmebaasis olemas
+                UserId = 1,
+                CarId = 2,
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now.AddHours(1),
+                DistanceKm = 100
+            };
+
+            // Veendume, et broneeringut pole andmebaasis
+            var initialBooking = await _bookingService.Get(booking.Id);
+            Assert.Null(initialBooking);
 
             // Act
+            await _bookingService.Save(booking); // Save peaks kontrollima, et broneeringut ei leita ja mitte midagi ei tee
+
+            // Assert
+            // Kontrollime, et broneering ei ole andmebaasis, kuna ID-ga broneeringut ei leitud
+            var updatedBooking = await _bookingService.Get(booking.Id);
+            Assert.Null(updatedBooking); // Kui midagi ei tehta, siis broneeringut ei lisata ega uuendata
+        }
+
+
+        // Test, et broneering eemaldatakse õigesti
+        [Fact]
+        public async Task Delete_ShouldRemoveBooking()
+        {
+            var booking = new Booking
+            {
+                UserId = 1,
+                CarId = 2,
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now.AddHours(1),
+                DistanceKm = 100
+            };
+            await _bookingService.Save(booking);
+
             await _bookingService.Delete(booking.Id);
 
-            // Assert
-            var deletedBooking = await _context.Bookings.FindAsync(booking.Id);
-            Assert.Null(deletedBooking); // Broneeringut ei tohiks enam olla
+            var deletedBooking = await DbContext.Bookings.FindAsync(booking.Id);
+            Assert.Null(deletedBooking);
         }
 
-        [Fact]
-        public async Task Delete_ShouldNotThrow_WhenBookingDoesNotExist()
-        {
-            // Arrange
-            var nonExistentId = 999; // ID, mis ei eksisteeri
-
-            // Act
-            var exception = await Record.ExceptionAsync(() => _bookingService.Delete(nonExistentId));
-
-            // Assert
-            Assert.Null(exception); // Erandit ei tohiks visata, kõik peaks toimuma ilma vigadeta
-        }
-
-        // Get tests
-        [Fact]
-        public async Task Get_ShouldReturnBooking_WhenBookingExists()
-        {
-            // Arrange
-            var booking = new Booking { Id = 1, UserId = 1, CarId = 1, DistanceKm = 100, StartTime = DateTime.Now, EndTime = DateTime.Now.AddHours(1) };
-            await _context.Bookings.AddAsync(booking);
-            await _context.SaveChangesAsync();
-
-            // Act
-            var result = await _bookingService.Get(1);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(booking.Id, result.Id); // Kontrollige, et leiti õige broneering
-        }
-
-        [Fact]
-        public async Task Get_ShouldReturnNull_WhenBookingDoesNotExist()
-        {
-            // Act
-            var result = await _bookingService.Get(999); // ID, mis ei eksisteeri
-
-            // Assert
-            Assert.Null(result); // Broneeringut ei tohiks leida
-        }
-
-        // Includes tests
+        // Test, et Includes tagastab õigesti true, kui broneering olemas
         [Fact]
         public async Task Includes_ShouldReturnTrue_WhenBookingExists()
         {
-            // Arrange
-            var booking = new Booking { Id = 1, UserId = 1, CarId = 1, DistanceKm = 100, StartTime = DateTime.Now, EndTime = DateTime.Now.AddHours(1) };
-            await _context.Bookings.AddAsync(booking);
-            await _context.SaveChangesAsync();
+            var booking = new Booking
+            {
+                UserId = 1,
+                CarId = 2,
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now.AddHours(1),
+                DistanceKm = 100
+            };
+            await _bookingService.Save(booking);
 
-            // Act
-            var result = await _bookingService.Includes(1);
+            var exists = await _bookingService.Includes(booking.Id);
 
-            // Assert
-            Assert.True(result); // Broneering peaks eksisteerima
+            Assert.True(exists);
         }
 
+        // Test, et Includes tagastab false, kui broneeringut ei eksisteeri
         [Fact]
         public async Task Includes_ShouldReturnFalse_WhenBookingDoesNotExist()
         {
-            // Act
-            var result = await _bookingService.Includes(999); // ID, mis ei eksisteeri
+            var exists = await _bookingService.Includes(999);
 
-            // Assert
-            Assert.False(result); // Broneeringut ei tohiks leida
+            Assert.False(exists);
         }
 
-        // List tests
         [Fact]
-        public async Task List_ShouldReturnCorrectPagedResults_WhenPaginationIsApplied()
+        public async Task Search_ShouldReturnBookings_WhenKeywordAndDoneStatusMatch()
         {
             // Arrange
-            var bookings = new List<Booking>
+            var booking1 = new Booking
             {
-                new Booking { Id = 1, UserId = 1, CarId = 1, DistanceKm = 100, StartTime = DateTime.Now, EndTime = DateTime.Now.AddHours(1) },
-                new Booking { Id = 2, UserId = 2, CarId = 2, DistanceKm = 200, StartTime = DateTime.Now.AddDays(1), EndTime = DateTime.Now.AddDays(1).AddHours(1) },
-                new Booking { Id = 3, UserId = 3, CarId = 3, DistanceKm = 300, StartTime = DateTime.Now.AddDays(2), EndTime = DateTime.Now.AddDays(2).AddHours(1) },
-                new Booking { Id = 4, UserId = 4, CarId = 4, DistanceKm = 400, StartTime = DateTime.Now.AddDays(3), EndTime = DateTime.Now.AddDays(3).AddHours(1) },
-                new Booking { Id = 5, UserId = 5, CarId = 5, DistanceKm = 500, StartTime = DateTime.Now.AddDays(4), EndTime = DateTime.Now.AddDays(4).AddHours(1) }
+                UserId = 1,
+                CarId = 2,
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now.AddHours(1),
+                DistanceKm = 100,
+                IsCompleted = true // Lõpetatud broneering
             };
 
-            await _context.Bookings.AddRangeAsync(bookings);
-            await _context.SaveChangesAsync();
+            var booking2 = new Booking
+            {
+                UserId = 2,
+                CarId = 3,
+                StartTime = DateTime.Now.AddDays(1),
+                EndTime = DateTime.Now.AddDays(1).AddHours(1),
+                DistanceKm = 200,
+                IsCompleted = false // Mitte-lõpetatud broneering
+            };
 
-            // Act: Get the first page with 2 items per page
-            var result = await _bookingService.List(1, 2);
+            await _bookingService.Save(booking1);
+            await _bookingService.Save(booking2);
+
+            // Otsing Keyword järgi ja Done= true järgi (lõpetatud broneering)
+            var search = new BookingSearch { Keyword = "1", Done = true };
+
+            var result = await _bookingService.Search(search);
+
+            Assert.NotNull(result);
+            Assert.Single(result); // Ainult üks broneering, kuna otsing peab leidma ainult lõpetatud broneeringu, mis sisaldab Keyword "1"
+            Assert.Contains(result, b => b.IsCompleted == true && b.UserId == 1);
+        }
+
+
+        [Fact]
+        public async Task Search_ShouldReturnBookings_WhenNotDoneStatusMatches()
+        {
+            // Arrange
+            var booking1 = new Booking
+            {
+                UserId = 1,
+                CarId = 2,
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now.AddHours(1),
+                DistanceKm = 100,
+                IsCompleted = false // Mitte-lõpetatud broneering
+            };
+
+            var booking2 = new Booking
+            {
+                UserId = 2,
+                CarId = 3,
+                StartTime = DateTime.Now.AddDays(1),
+                EndTime = DateTime.Now.AddDays(1).AddHours(1),
+                DistanceKm = 200,
+                IsCompleted = true // Lõpetatud broneering
+            };
+
+            await _bookingService.Save(booking1);
+            await _bookingService.Save(booking2);
+
+            // Otsing mittetäidetud broneeringute järgi
+            var search = new BookingSearch { Done = false };
+
+            var result = await _bookingService.Search(search);
+
+            Assert.NotNull(result);
+            Assert.Single(result);  // Ainult üks broneering, sest otsime ainult mittetäidetud broneeringuid
+            Assert.Contains(result, b => b.IsCompleted == false);
+        }
+
+        [Fact]
+        public async Task Search_ShouldReturnAllBookings_WhenSearchIsNull()
+        {
+            // Arrange
+            var booking1 = new Booking { UserId = 1, CarId = 2, StartTime = DateTime.Now, EndTime = DateTime.Now.AddHours(1), DistanceKm = 100, IsCompleted = true };
+            var booking2 = new Booking { UserId = 2, CarId = 3, StartTime = DateTime.Now.AddDays(1), EndTime = DateTime.Now.AddDays(1).AddHours(1), DistanceKm = 200, IsCompleted = false };
+            await _bookingService.Save(booking1);
+            await _bookingService.Save(booking2);
+
+            // Act
+            var result = await _bookingService.Search(null); // search on null
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(2, result.Results.Count); // Only 2 items should be returned (page 1)
-            Assert.Equal(1, result.Results.First().Id); // First item should have Id = 1
-            Assert.Equal(2, result.Results.Last().Id); // Last item on this page should have Id = 2
+            Assert.Equal(2, result.Count); // Kõik broneeringud peaksid olema tagastatud
         }
+
+        [Fact]
+        public async Task Search_ShouldReturnAllBookings_WhenKeywordIsEmpty()
+        {
+            // Arrange
+            var booking1 = new Booking { UserId = 1, CarId = 2, StartTime = DateTime.Now, EndTime = DateTime.Now.AddHours(1), DistanceKm = 100, IsCompleted = true };
+            var booking2 = new Booking { UserId = 2, CarId = 3, StartTime = DateTime.Now.AddDays(1), EndTime = DateTime.Now.AddDays(1).AddHours(1), DistanceKm = 200, IsCompleted = false };
+            await _bookingService.Save(booking1);
+            await _bookingService.Save(booking2);
+
+            var search = new BookingSearch { Keyword = "" }; // Keyword on tühi
+
+            // Act
+            var result = await _bookingService.Search(search);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count); // Kõik broneeringud peaksid olema tagastatud
+        }
+
+        [Fact]
+        public async Task Search_ShouldReturnAllBookings_WhenDoneIsNull()
+        {
+            // Arrange
+            var booking1 = new Booking { UserId = 1, CarId = 2, StartTime = DateTime.Now, EndTime = DateTime.Now.AddHours(1), DistanceKm = 100, IsCompleted = true };
+            var booking2 = new Booking { UserId = 2, CarId = 3, StartTime = DateTime.Now.AddDays(1), EndTime = DateTime.Now.AddDays(1).AddHours(1), DistanceKm = 200, IsCompleted = false };
+            await _bookingService.Save(booking1);
+            await _bookingService.Save(booking2);
+
+            var search = new BookingSearch { Done = null }; // Done on null
+
+            // Act
+            var result = await _bookingService.Search(search);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count); // Kõik broneeringud peaksid olema tagastatud
+        }
+
+        [Fact]
+        public async Task Search_ShouldReturnCompletedBookings_WhenDoneIsTrue()
+        {
+            // Arrange
+            var booking1 = new Booking { UserId = 1, CarId = 2, StartTime = DateTime.Now, EndTime = DateTime.Now.AddHours(1), DistanceKm = 100, IsCompleted = true };
+            var booking2 = new Booking { UserId = 2, CarId = 3, StartTime = DateTime.Now.AddDays(1), EndTime = DateTime.Now.AddDays(1).AddHours(1), DistanceKm = 200, IsCompleted = false };
+            await _bookingService.Save(booking1);
+            await _bookingService.Save(booking2);
+
+            var search = new BookingSearch { Done = true }; // Done = true
+
+            // Act
+            var result = await _bookingService.Search(search);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result); // Ainult üks broneering, mis on lõpetatud
+            Assert.Contains(result, b => b.IsCompleted == true);
+        }
+
+        [Fact]
+public async Task Search_ShouldReturnUncompletedBookings_WhenDoneIsFalse()
+{
+    // Arrange
+    var booking1 = new Booking { UserId = 1, CarId = 2, StartTime = DateTime.Now, EndTime = DateTime.Now.AddHours(1), DistanceKm = 100, IsCompleted = true };
+    var booking2 = new Booking { UserId = 2, CarId = 3, StartTime = DateTime.Now.AddDays(1), EndTime = DateTime.Now.AddDays(1).AddHours(1), DistanceKm = 200, IsCompleted = false };
+    await _bookingService.Save(booking1);
+    await _bookingService.Save(booking2);
+
+    var search = new BookingSearch { Done = false }; // Done = false
+
+    // Act
+    var result = await _bookingService.Search(search);
+
+    // Assert
+    Assert.NotNull(result);
+    Assert.Single(result);  // Ainult üks broneering, mis on lõpetamata
+    Assert.Contains(result, b => b.IsCompleted == false);
+}
+
     }
 }

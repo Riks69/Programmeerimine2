@@ -38,6 +38,7 @@ namespace KooliProjekt.Services
         {
             var query = _context.Cars.AsQueryable();
 
+            // Kui otsingukriteerium on olemas ja Keyword pole tühi
             if (search != null && !string.IsNullOrEmpty(search.Keyword))
             {
                 query = query.Where(h =>
@@ -46,13 +47,35 @@ namespace KooliProjekt.Services
                     EF.Functions.Like(h.HourlyRate.ToString(), $"%{search.Keyword}%") ||
                     EF.Functions.Like(h.KmRate.ToString(), $"%{search.Keyword}%") ||
                     EF.Functions.Like(h.IsAvaliable.ToString(), $"%{search.Keyword}%"));
-
             }
 
             return await query.GetPagedAsync(page, pageSize);
         }
 
+        // Uus Search meetod, kus arvestatakse IsAvaliable väärtuse kontrolliga
+        public async Task<List<Car>> Search(CarSearch search)
+        {
+            IQueryable<Car> query = _context.Cars;
 
+            // Filtreeri Keyword järgi
+            if (search != null && !string.IsNullOrEmpty(search.Keyword))
+            {
+                query = query.Where(h =>
+                    EF.Functions.Like(h.Type.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.RegistrationNumber.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.HourlyRate.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.KmRate.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.IsAvaliable.ToString(), $"%{search.Keyword}%"));
+            }
+
+            // Filtreeri Availability järgi, kui see on määratud
+            if (search?.IsAvaliable != null)
+            {
+                query = query.Where(h => h.IsAvaliable == search.IsAvaliable);
+            }
+
+            return await query.ToListAsync(); // Tagastab kõik vastavad autod
+        }
 
         public async Task Save(Car car)
         {
@@ -66,7 +89,7 @@ namespace KooliProjekt.Services
 
                 if (existingCars != null)
                 {
-                    // If it exists, update the entity
+                    // Kui olemas, siis uuenda
                     _context.Entry(existingCars).State = EntityState.Modified;
                 }
                 else
@@ -78,4 +101,3 @@ namespace KooliProjekt.Services
         }
     }
 }
-
