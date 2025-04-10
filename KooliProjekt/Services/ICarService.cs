@@ -1,5 +1,6 @@
 ﻿using KooliProjekt.Data;
-using KooliProjekt.Search; // Make sure this is included
+using KooliProjekt.Search;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.Services
 {

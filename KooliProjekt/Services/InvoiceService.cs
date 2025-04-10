@@ -57,24 +57,30 @@ namespace KooliProjekt.Services
         {
             if (invoice.Id == 0)
             {
-                _context.Invoices.Add(invoice);
+                _context.Invoices.Add(invoice);  // Kui ID on 0, siis lisame uue arve
             }
             else
             {
-                var existingInvoices = await _context.Invoices.FindAsync(invoice.Id);
-
-                if (existingInvoices != null)
+                var existingInvoice = await _context.Invoices.FindAsync(invoice.Id); // Otsime olemasolevat arvet
+                if (existingInvoice != null)
                 {
-                    // If it exists, update the entity
-                    _context.Entry(existingInvoices).State = EntityState.Modified;
+                    // Kui arve on olemas, siis uuendame selle
+                    existingInvoice.BookingId = invoice.BookingId;
+                    existingInvoice.Amount = invoice.Amount;
+                    existingInvoice.Description = invoice.Description;
+
+                    // Ei ole vaja eraldi Entry muudatusi teha, kuna FindAsync tagastab juba jälgimisobjekti
                 }
                 else
                 {
+                    // Kui arvet ei leita, lisame selle uue
                     _context.Invoices.Add(invoice);
                 }
             }
-            await _context.SaveChangesAsync();
+
+            await _context.SaveChangesAsync();  // Salvesta muudatused andmebaasi
         }
+
     }
 }
 

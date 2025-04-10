@@ -12,7 +12,7 @@ namespace KooliProjekt.Data
         [Required]
         public double HourlyRate { get; set; }
         [Required]
-        public double KmRate { get; set; } 
+        public double KmRate { get; set; }
         [Required]
         public Boolean IsAvaliable { get; set; }
     }

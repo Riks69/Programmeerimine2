@@ -52,12 +52,13 @@ namespace KooliProjekt.Services
             return await query.GetPagedAsync(page, pageSize);
         }
 
-        // Uus Search meetod, kus arvestatakse IsAvaliable väärtuse kontrolliga
+
+        // Uus Search meetod
         public async Task<List<Car>> Search(CarSearch search)
         {
             IQueryable<Car> query = _context.Cars;
 
-            // Filtreeri Keyword järgi
+            // Filtreeri Keyword järgi (see peaks olema esimene, et mitte mõjutada teisi filtreid)
             if (search != null && !string.IsNullOrEmpty(search.Keyword))
             {
                 query = query.Where(h =>
@@ -68,35 +69,44 @@ namespace KooliProjekt.Services
                     EF.Functions.Like(h.IsAvaliable.ToString(), $"%{search.Keyword}%"));
             }
 
-            // Filtreeri Availability järgi, kui see on määratud
-            if (search?.IsAvaliable != null)
+            // Filtreeri Done (lõpetatud) järgi, kui see on määratud
+            if (search?.Done.HasValue == true)
             {
-                query = query.Where(h => h.IsAvaliable == search.IsAvaliable);
+                query = query.Where(h => h.IsAvaliable == search.Done);
             }
 
-            return await query.ToListAsync(); // Tagastab kõik vastavad autod
+            return await query.ToListAsync(); // Tagastab kõik vastavad broneeringud
         }
+
+
 
         public async Task Save(Car car)
         {
             if (car.Id == 0)
             {
+                // Kui ID on 0, siis lisame uue broneeringu
                 _context.Cars.Add(car);
             }
             else
             {
-                var existingCars = await _context.Cars.FindAsync(car.Id);
+                // Kui ID on olemas, siis otsime broneeringut ID järgi
+                var existingCar = await _context.Cars.FindAsync(car.Id);
 
-                if (existingCars != null)
+                if (existingCar == null)
                 {
-                    // Kui olemas, siis uuenda
-                    _context.Entry(existingCars).State = EntityState.Modified;
+                    // Kui broneeringut ei leita, siis ei tee midagi
+                    return;
                 }
-                else
-                {
-                    _context.Cars.Add(car);
-                }
+
+                // Kui broneering on olemas, siis uuendame andmeid
+                existingCar.Type = car.Type;
+                existingCar.RegistrationNumber = car.RegistrationNumber;
+                existingCar.HourlyRate = car.HourlyRate;
+                existingCar.KmRate = car.KmRate;
+                existingCar.IsAvaliable = car.IsAvaliable;
             }
+
+            // Tagame, et muudatused salvestatakse ja ID määratakse õigesti
             await _context.SaveChangesAsync();
         }
     }

@@ -238,13 +238,13 @@ var assemblies = [
       { "name": "KooliProjekt.Models.InvoiceIndexModel", "rp": "KooliProjekt_InvoiceIndexModel.html", "cl": 2, "ucl": 0, "cal": 2, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Program", "rp": "KooliProjekt_Program.html", "cl": 0, "ucl": 41, "cal": 41, "tl": 68, "cb": 0, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Search.BookingSearch", "rp": "KooliProjekt_BookingSearch.html", "cl": 2, "ucl": 0, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Search.CarSearch", "rp": "KooliProjekt_CarSearch.html", "cl": 2, "ucl": 1, "cal": 3, "tl": 9, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Search.CustomerSearch", "rp": "KooliProjekt_CustomerSearch.html", "cl": 0, "ucl": 2, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Search.InvoiceSearch", "rp": "KooliProjekt_InvoiceSearch.html", "cl": 0, "ucl": 2, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Search.CarSearch", "rp": "KooliProjekt_CarSearch.html", "cl": 1, "ucl": 1, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Search.CustomerSearch", "rp": "KooliProjekt_CustomerSearch.html", "cl": 1, "ucl": 1, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Search.InvoiceSearch", "rp": "KooliProjekt_InvoiceSearch.html", "cl": 1, "ucl": 1, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Services.BookingService", "rp": "KooliProjekt_BookingService.html", "cl": 67, "ucl": 0, "cal": 67, "tl": 114, "cb": 18, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Services.CarService", "rp": "KooliProjekt_CarService.html", "cl": 45, "ucl": 20, "cal": 65, "tl": 103, "cb": 9, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Services.CustomerService", "rp": "KooliProjekt_CustomerService.html", "cl": 0, "ucl": 46, "cal": 46, "tl": 78, "cb": 0, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Services.InvoiceService", "rp": "KooliProjekt_InvoiceService.html", "cl": 0, "ucl": 46, "cal": 46, "tl": 80, "cb": 0, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Services.CarService", "rp": "KooliProjekt_CarService.html", "cl": 47, "ucl": 19, "cal": 66, "tl": 113, "cb": 9, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Services.CustomerService", "rp": "KooliProjekt_CustomerService.html", "cl": 43, "ucl": 3, "cal": 46, "tl": 78, "cb": 9, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Services.InvoiceService", "rp": "KooliProjekt_InvoiceService.html", "cl": 45, "ucl": 3, "cal": 48, "tl": 86, "cb": 9, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
 ];
 
@@ -259,7 +259,7 @@ var riskHotspotMetrics = [
 
 var riskHotspots = [
   {
-    "assembly": "KooliProjekt", "class": "KooliProjekt.Services.CarService", "reportPath": "KooliProjekt_CarService.html", "methodName": "Search()", "methodShortName": "Search()", "fileIndex": 0, "line": 57,
+    "assembly": "KooliProjekt", "class": "KooliProjekt.Services.CarService", "reportPath": "KooliProjekt_CarService.html", "methodName": "Search()", "methodShortName": "Search()", "fileIndex": 0, "line": 58,
     "metrics": [
       { "value": 72, "exceeded": true },
       { "value": 8, "exceeded": false },
