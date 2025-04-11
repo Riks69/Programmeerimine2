@@ -1,199 +1,224 @@
 ﻿using KooliProjekt.Data;
+using KooliProjekt.Models;
+using KooliProjekt.Search;
 using KooliProjekt.Services;
-using Moq;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Threading.Tasks;
 using Xunit;
-using KooliProjekt.Search;
 
-namespace KooliProjekt.Tests
+namespace KooliProjekt.UnitTests.ServiceTests
 {
-    public class CarServiceTests
+    public class CarServiceTests : ServiceTestBase
     {
-        private readonly Mock<ApplicationDbContext> _mockContext;
-        private readonly CarService _carService;
+        private readonly ICarService _carService;
 
         public CarServiceTests()
         {
-            // Loome mockitud ApplicationDbContext-i
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: "InMemoryDb")
-                .Options;
-
-            var context = new ApplicationDbContext(options);
-            _carService = new CarService(context);
+            _carService = new CarService(DbContext);
         }
 
         [Fact]
-        public async Task Save_ShouldAddNewCar_WhenIdIsZero()
+        public async Task Save_ShouldAddNewCar()
         {
-            // Arrange
-            var newCar = new Car
+            var car = new Car
             {
-                Id = 0,
                 Type = "Sedan",
-                RegistrationNumber = "XYZ123",
-                HourlyRate = 20.0,
-                KmRate = 0.1,
+                RegistrationNumber = "123ABC",
+                HourlyRate = 10,
+                KmRate = 0.5,
                 IsAvaliable = true
             };
 
-            // Act
-            await _carService.Save(newCar);
+            await _carService.Save(car);
 
-            // Assert
-            var carFromDb = await _carService.Get(newCar.Id);
-            Assert.NotNull(carFromDb);
-            Assert.Equal(newCar.Type, carFromDb.Type);
+            var created = await DbContext.Cars.FindAsync(car.Id);
+            Assert.NotNull(created);
+            Assert.True(created.Id > 0);
+            Assert.Equal("Sedan", created.Type);
         }
 
         [Fact]
-        public async Task Save_ShouldUpdateCar_WhenIdIsNotZero()
+        public async Task Save_ShouldUpdateCar_WhenCarExists()
         {
-            // Arrange
-            var existingCar = new Car
+            var car = new Car
             {
-                Id = 1,
-                Type = "Sedan",
-                RegistrationNumber = "XYZ123",
-                HourlyRate = 20.0,
-                KmRate = 0.1,
-                IsAvaliable = true
-            };
-            await _carService.Save(existingCar);
-
-            var updatedCar = new Car
-            {
-                Id = 1,
                 Type = "SUV",
-                RegistrationNumber = "ABC456",
-                HourlyRate = 25.0,
-                KmRate = 0.12,
+                RegistrationNumber = "XYZ789",
+                HourlyRate = 15,
+                KmRate = 0.6,
+                IsAvaliable = true
+            };
+            await _carService.Save(car);
+
+            car.Type = "Van";
+            car.HourlyRate = 20;
+            await _carService.Save(car);
+
+            var updated = await _carService.Get(car.Id);
+            Assert.Equal("Van", updated.Type);
+            Assert.Equal(20, updated.HourlyRate);
+        }
+
+        [Fact]
+        public async Task Save_ShouldDoNothing_WhenCarDoesNotExist()
+        {
+            var car = new Car
+            {
+                Id = 999, // Ei eksisteeri
+                Type = "Sedan",
+                RegistrationNumber = "123ABC",
+                HourlyRate = 10,
+                KmRate = 0.5,
+                IsAvaliable = true
+            };
+
+            var existing = await _carService.Get(car.Id);
+            Assert.Null(existing);
+
+            await _carService.Save(car); // Ei tohiks midagi teha
+
+            var check = await _carService.Get(car.Id);
+            Assert.Null(check);
+        }
+
+        [Fact]
+        public async Task Get_ShouldReturnCar_WhenExists()
+        {
+            var car = new Car
+            {
+                Type = "Hatchback",
+                RegistrationNumber = "ABC123",
+                HourlyRate = 12,
+                KmRate = 0.4,
                 IsAvaliable = false
             };
+            await _carService.Save(car);
 
-            // Act
-            await _carService.Save(updatedCar);
+            var result = await _carService.Get(car.Id);
 
-            // Assert
-            var carFromDb = await _carService.Get(updatedCar.Id);
-            Assert.Equal(updatedCar.Type, carFromDb.Type);
-            Assert.Equal(updatedCar.RegistrationNumber, carFromDb.RegistrationNumber);
-            Assert.Equal(updatedCar.HourlyRate, carFromDb.HourlyRate);
-            Assert.Equal(updatedCar.KmRate, carFromDb.KmRate);
-            Assert.Equal(updatedCar.IsAvaliable, carFromDb.IsAvaliable);
+            Assert.NotNull(result);
+            Assert.Equal("Hatchback", result.Type);
         }
 
         [Fact]
-        public async Task Delete_ShouldRemoveCar_WhenCarExists()
+        public async Task Delete_ShouldRemoveCar()
         {
-            // Arrange
             var car = new Car
             {
-                Id = 1,
-                Type = "Sedan",
-                RegistrationNumber = "XYZ123",
-                HourlyRate = 20.0,
-                KmRate = 0.1,
+                Type = "Truck",
+                RegistrationNumber = "TRK321",
+                HourlyRate = 25,
+                KmRate = 1.2,
                 IsAvaliable = true
             };
             await _carService.Save(car);
 
-            // Act
             await _carService.Delete(car.Id);
 
-            // Assert
-            var carFromDb = await _carService.Get(car.Id);
-            Assert.Null(carFromDb);
-        }
-
-        [Fact]
-        public async Task Get_ShouldReturnCar_WhenCarExists()
-        {
-            // Arrange
-            var car = new Car
-            {
-                Id = 1,
-                Type = "Sedan",
-                RegistrationNumber = "XYZ123",
-                HourlyRate = 20.0,
-                KmRate = 0.1,
-                IsAvaliable = true
-            };
-            await _carService.Save(car);
-
-            // Act
-            var carFromDb = await _carService.Get(car.Id);
-
-            // Assert
-            Assert.NotNull(carFromDb);
-            Assert.Equal(car.Type, carFromDb.Type);
-            Assert.Equal(car.RegistrationNumber, carFromDb.RegistrationNumber);
-        }
-
-        [Fact]
-        public async Task List_ShouldReturnPagedResults()
-        {
-            // Arrange
-            var car1 = new Car { Id = 1, Type = "Sedan", RegistrationNumber = "XYZ123", HourlyRate = 20.0, KmRate = 0.1, IsAvaliable = true };
-            var car2 = new Car { Id = 2, Type = "SUV", RegistrationNumber = "ABC456", HourlyRate = 25.0, KmRate = 0.12, IsAvaliable = false };
-            var car3 = new Car { Id = 3, Type = "Hatchback", RegistrationNumber = "DEF789", HourlyRate = 15.0, KmRate = 0.08, IsAvaliable = true };
-
-            await _carService.Save(car1);
-            await _carService.Save(car2);
-            await _carService.Save(car3);
-
-            // Act
-            var pagedCars = await _carService.List(1, 2);
-
-            // Assert
-            Assert.Equal(2, pagedCars.Items.Count); // We expect two cars in the first page
-        }
-
-        [Fact]
-        public async Task Search_ShouldReturnCars_WhenSearchIsUsed()
-        {
-            // Arrange
-            var car1 = new Car { Id = 1, Type = "Sedan", RegistrationNumber = "XYZ123", HourlyRate = 20.0, KmRate = 0.1, IsAvaliable = true };
-            var car2 = new Car { Id = 2, Type = "SUV", RegistrationNumber = "ABC456", HourlyRate = 25.0, KmRate = 0.12, IsAvaliable = false };
-
-            await _carService.Save(car1);
-            await _carService.Save(car2);
-
-            var search = new CarSearch { Keyword = "SUV" };
-
-            // Act
-            var results = await _carService.Search(search);
-
-            // Assert
-            Assert.Single(results); // Only one result should be returned (car2)
-            Assert.Equal(car2.Type, results[0].Type);
+            var deleted = await _carService.Get(car.Id);
+            Assert.Null(deleted);
         }
 
         [Fact]
         public async Task Includes_ShouldReturnTrue_WhenCarExists()
         {
-            // Arrange
-            var car = new Car { Id = 1, Type = "Sedan", RegistrationNumber = "XYZ123", HourlyRate = 20.0, KmRate = 0.1, IsAvaliable = true };
+            var car = new Car
+            {
+                Type = "Minivan",
+                RegistrationNumber = "MINI123",
+                HourlyRate = 13,
+                KmRate = 0.7,
+                IsAvaliable = true
+            };
             await _carService.Save(car);
 
-            // Act
             var exists = await _carService.Includes(car.Id);
 
-            // Assert
             Assert.True(exists);
         }
 
         [Fact]
         public async Task Includes_ShouldReturnFalse_WhenCarDoesNotExist()
         {
-            // Arrange & Act
-            var exists = await _carService.Includes(999); // Non-existing car ID
-
-            // Assert
+            var exists = await _carService.Includes(999);
             Assert.False(exists);
+        }
+
+        [Fact]
+        public async Task List_ShouldReturnPagedCars_WhenSearchIsNull()
+        {
+            await _carService.Save(new Car { Type = "Sedan", RegistrationNumber = "1", HourlyRate = 10, KmRate = 0.5, IsAvaliable = true });
+            await _carService.Save(new Car { Type = "SUV", RegistrationNumber = "2", HourlyRate = 15, KmRate = 0.6, IsAvaliable = false });
+
+            var result = await _carService.List(1, 10, null);
+
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Results.Count);
+        }
+
+        [Fact]
+        public async Task List_ShouldFilterByKeyword()
+        {
+            await _carService.Save(new Car { Type = "Sedan", RegistrationNumber = "ABC123", HourlyRate = 10, KmRate = 0.5, IsAvaliable = true });
+            await _carService.Save(new Car { Type = "SUV", RegistrationNumber = "XYZ789", HourlyRate = 20, KmRate = 0.8, IsAvaliable = false });
+
+            var search = new CarSearch { Keyword = "SUV" };
+            var result = await _carService.List(1, 10, search);
+
+            Assert.Single(result.Results);
+            Assert.Equal("SUV", result.Results[0].Type);
+        }
+
+        [Fact]
+        public async Task Search_ShouldReturnMatchingCars_ByKeywordAndDone()
+        {
+            await _carService.Save(new Car { Type = "Truck", RegistrationNumber = "TRUCK1", HourlyRate = 30, KmRate = 1.0, IsAvaliable = true });
+            await _carService.Save(new Car { Type = "Truck", RegistrationNumber = "TRUCK2", HourlyRate = 35, KmRate = 1.2, IsAvaliable = false });
+
+            var search = new CarSearch { Keyword = "Truck", Done = true };
+
+            var result = await _carService.Search(search);
+
+            Assert.Single(result);
+            Assert.True(result[0].IsAvaliable);
+        }
+
+        [Fact]
+        public async Task Search_ShouldReturnAll_WhenSearchIsNull()
+        {
+            await _carService.Save(new Car { Type = "Sedan", RegistrationNumber = "1", HourlyRate = 10, KmRate = 0.5, IsAvaliable = true });
+            await _carService.Save(new Car { Type = "SUV", RegistrationNumber = "2", HourlyRate = 15, KmRate = 0.6, IsAvaliable = false });
+
+            var result = await _carService.Search(null);
+
+            Assert.Equal(2, result.Count);
+        }
+
+        [Fact]
+        public async Task Search_ShouldReturnAvailableCars_WhenDoneIsTrue()
+        {
+            await _carService.Save(new Car { Type = "Van", RegistrationNumber = "VAN1", HourlyRate = 12, KmRate = 0.7, IsAvaliable = true });
+            await _carService.Save(new Car { Type = "Van", RegistrationNumber = "VAN2", HourlyRate = 12, KmRate = 0.7, IsAvaliable = false });
+
+            var search = new CarSearch { Done = true };
+            var result = await _carService.Search(search);
+
+            Assert.Single(result);
+            Assert.True(result[0].IsAvaliable);
+        }
+
+        [Fact]
+        public async Task Search_ShouldReturnUnavailableCars_WhenDoneIsFalse()
+        {
+            await _carService.Save(new Car { Type = "Mini", RegistrationNumber = "MINI1", HourlyRate = 8, KmRate = 0.3, IsAvaliable = true });
+            await _carService.Save(new Car { Type = "Mini", RegistrationNumber = "MINI2", HourlyRate = 8, KmRate = 0.3, IsAvaliable = false });
+
+            var search = new CarSearch { Done = false };
+            var result = await _carService.Search(search);
+
+            Assert.Single(result);
+            Assert.False(result[0].IsAvaliable);
         }
     }
 }

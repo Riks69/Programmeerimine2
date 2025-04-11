@@ -1,10 +1,9 @@
 ﻿using KooliProjekt.Data;
-using KooliProjekt.Services;
 using KooliProjekt.Models;
 using KooliProjekt.Search;
+using KooliProjekt.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -16,133 +15,193 @@ namespace KooliProjekt.UnitTests.ServiceTests
 
         public CustomerServiceTests()
         {
-            _customerService = new CustomerService(DbContext);  // Kutsume üles CustomerService testimiseks
+            _customerService = new CustomerService(DbContext);
         }
 
-        // Test, et auto lisamine töötab ja toob õiged andmed
         [Fact]
-        public async Task Save_ShouldAddCustomer()
+        public async Task Save_ShouldAddCustomer_WhenIdIsZero()
         {
             var customer = new Customer
             {
-                Name = "John Doe",
-                Email = "john.doe@example.com",
+                Name = "John",
+                Email = "john@example.com",
                 Password = "password123",
-                Id = 0  // ID 0 tähendab, et see on uus klient
+                IsRegistered = true
             };
 
             await _customerService.Save(customer);
 
-            var createdCustomer = await DbContext.Customers.FindAsync(customer.Id);
-            Assert.NotNull(createdCustomer);
-            Assert.Equal("John Doe", createdCustomer.Name);
-            Assert.Equal("john.doe@example.com", createdCustomer.Email);
-            Assert.Equal("password123", createdCustomer.Password);
-            Assert.True(createdCustomer.Id > 0);  // Kontrollime, et ID on määratud pärast salvestamist
+            var saved = await DbContext.Customers.FindAsync(customer.Id);
+            Assert.NotNull(saved);
+            Assert.Equal("John", saved.Name);
         }
 
-        // Test, et klienti saab uuendada
         [Fact]
-        public async Task Save_ShouldUpdateCustomer_WhenCustomerExists()
+        public async Task Save_ShouldUpdateCustomer_WhenExists()
         {
-            // Loome esmalt kliendi
             var customer = new Customer
             {
-                Name = "John Doe",
-                Email = "john.doe@example.com",
-                Password = "password123"
+                Name = "Anna",
+                Email = "anna@example.com",
+                Password = "123456",
+                IsRegistered = false
             };
             await _customerService.Save(customer);
 
-            // Uuendame kliendi andmed
-            customer.Name = "Jane Doe";
-            customer.Email = "jane.doe@example.com";
-            customer.Password = "newpassword456";
+            customer.Name = "Anna Maria";
+            customer.IsRegistered = true;
+            await _customerService.Save(customer);
+
+            var updated = await _customerService.Get(customer.Id);
+            Assert.Equal("Anna Maria", updated.Name);
+            Assert.True(updated.IsRegistered);
+        }
+
+        [Fact]
+        public async Task Save_ShouldDoNothing_WhenCustomerDoesNotExist()
+        {
+            var customer = new Customer
+            {
+                Id = 999,
+                Name = "Ghost",
+                Email = "ghost@none.com",
+                Password = "nopass",
+                IsRegistered = false
+            };
 
             await _customerService.Save(customer);
 
-            var updatedCustomer = await _customerService.Get(customer.Id);
-            Assert.NotNull(updatedCustomer);
-            Assert.Equal("Jane Doe", updatedCustomer.Name);
-            Assert.Equal("jane.doe@example.com", updatedCustomer.Email);
-            Assert.Equal("newpassword456", updatedCustomer.Password);
+            var check = await _customerService.Get(customer.Id);
+            Assert.Null(check); // ei tohiks lisanduda
         }
 
-        // Test, et klient kustutatakse õigesti
         [Fact]
         public async Task Delete_ShouldRemoveCustomer()
         {
             var customer = new Customer
             {
-                Name = "John Doe",
-                Email = "john.doe@example.com",
-                Password = "password123"
+                Name = "ToDelete",
+                Email = "delete@me.com",
+                Password = "del123",
+                IsRegistered = true
             };
             await _customerService.Save(customer);
 
             await _customerService.Delete(customer.Id);
 
-            var deletedCustomer = await DbContext.Customers.FindAsync(customer.Id);
-            Assert.Null(deletedCustomer);  // Kontrollime, et klient on andmebaasist kustutatud
+            var deleted = await _customerService.Get(customer.Id);
+            Assert.Null(deleted);
         }
 
-        // Test, et Includes töötab õigesti
         [Fact]
-        public async Task Includes_ShouldReturnTrue_WhenCustomerExists()
+        public async Task Get_ShouldReturnCustomer_WhenExists()
         {
             var customer = new Customer
             {
-                Name = "John Doe",
-                Email = "john.doe@example.com",
-                Password = "password123"
+                Name = "Getter",
+                Email = "getter@example.com",
+                Password = "pass",
+                IsRegistered = true
             };
             await _customerService.Save(customer);
 
-            var exists = await _customerService.Includes(customer.Id);
-
-            Assert.True(exists);  // Kontrollime, et klient eksisteerib
-        }
-
-        // Test, et Includes tagastab false, kui klient ei eksisteeri
-        [Fact]
-        public async Task Includes_ShouldReturnFalse_WhenCustomerDoesNotExist()
-        {
-            var exists = await _customerService.Includes(999);  // Kliendi ID, mida pole olemas
-
-            Assert.False(exists);  // Kontrollime, et klient ei eksisteeri
-        }
-
-        // Test, et List töötab õigesti
-        [Fact]
-        public async Task List_ShouldReturnPagedCustomers_WhenKeywordMatches()
-        {
-            var customer1 = new Customer { Name = "John Doe", Email = "john.doe@example.com", Password = "password123" };
-            var customer2 = new Customer { Name = "Jane Doe", Email = "jane.doe@example.com", Password = "newpassword456" };
-            await _customerService.Save(customer1);
-            await _customerService.Save(customer2);
-
-            var search = new CustomerSearch { Keyword = "John" };
-
-            var result = await _customerService.List(1, 10, search);
-
+            var result = await _customerService.Get(customer.Id);
             Assert.NotNull(result);
-            Assert.Equal(1, result.Results.Count);
-            Assert.Contains(result.Results, c => c.Name == "John Doe");
+            Assert.Equal("Getter", result.Name);
         }
 
-        // Test, et List tagastab kõik kliendid, kui otsing on tühi
         [Fact]
-        public async Task List_ShouldReturnAllCustomers_WhenSearchIsNull()
+        public async Task Includes_ShouldReturnTrue_WhenCustomerExists()
         {
-            var customer1 = new Customer { Name = "John Doe", Email = "john.doe@example.com", Password = "password123" };
-            var customer2 = new Customer { Name = "Jane Doe", Email = "jane.doe@example.com", Password = "newpassword456" };
-            await _customerService.Save(customer1);
-            await _customerService.Save(customer2);
+            var customer = new Customer { Name = "Test", Email = "a@a.com", Password = "123", IsRegistered = true };
+            await _customerService.Save(customer);
+
+            var exists = await _customerService.Includes(customer.Id);
+            Assert.True(exists);
+        }
+
+        [Fact]
+        public async Task Includes_ShouldReturnFalse_WhenCustomerNotExists()
+        {
+            var exists = await _customerService.Includes(999);
+            Assert.False(exists);
+        }
+
+        [Fact]
+        public async Task List_ShouldReturnPagedCustomers()
+        {
+            await _customerService.Save(new Customer { Name = "Alice", Email = "a@a.com", Password = "pass", IsRegistered = true });
+            await _customerService.Save(new Customer { Name = "Bob", Email = "b@b.com", Password = "pass", IsRegistered = false });
 
             var result = await _customerService.List(1, 10, null);
 
             Assert.NotNull(result);
-            Assert.Equal(2, result.Results.Count);  // Kõik kliendid peaksid olema tagastatud
+            Assert.Equal(2, result.Results.Count);
+        }
+
+        [Fact]
+        public async Task List_ShouldFilterByKeyword()
+        {
+            await _customerService.Save(new Customer { Name = "Keyword", Email = "key@word.com", Password = "key", IsRegistered = true });
+            await _customerService.Save(new Customer { Name = "NoMatch", Email = "no@match.com", Password = "pass", IsRegistered = false });
+
+            var result = await _customerService.List(1, 10, new CustomerSearch { Keyword = "key" });
+
+            Assert.Single(result.Results);
+            Assert.Contains(result.Results, c => c.Name.Contains("Keyword"));
+        }
+
+        [Fact]
+        public async Task Search_ShouldReturnMatchingCustomers_ByKeyword()
+        {
+            await _customerService.Save(new Customer { Name = "Marek", Email = "marek@example.com", Password = "test", IsRegistered = true });
+            await _customerService.Save(new Customer { Name = "Teet", Email = "teet@example.com", Password = "secret", IsRegistered = false });
+
+            var search = new CustomerSearch { Keyword = "marek" };
+
+            var result = await _customerService.Search(search);
+
+            Assert.Single(result);
+            Assert.Contains(result, c => c.Name == "Marek");
+        }
+
+        [Fact]
+        public async Task Search_ShouldReturnMatchingCustomers_ByDoneTrue()
+        {
+            await _customerService.Save(new Customer { Name = "RegUser", Email = "reg@user.com", Password = "pass", IsRegistered = true });
+            await _customerService.Save(new Customer { Name = "UnregUser", Email = "unreg@user.com", Password = "pass", IsRegistered = false });
+
+            var search = new CustomerSearch { Done = true };
+
+            var result = await _customerService.Search(search);
+
+            Assert.Single(result);
+            Assert.All(result, c => Assert.True(c.IsRegistered));
+        }
+
+        [Fact]
+        public async Task Search_ShouldReturnMatchingCustomers_ByDoneFalse()
+        {
+            await _customerService.Save(new Customer { Name = "RegUser", Email = "reg@user.com", Password = "pass", IsRegistered = true });
+            await _customerService.Save(new Customer { Name = "UnregUser", Email = "unreg@user.com", Password = "pass", IsRegistered = false });
+
+            var search = new CustomerSearch { Done = false };
+
+            var result = await _customerService.Search(search);
+
+            Assert.Single(result);
+            Assert.All(result, c => Assert.False(c.IsRegistered));
+        }
+
+        [Fact]
+        public async Task Search_ShouldReturnAll_WhenSearchIsNull()
+        {
+            await _customerService.Save(new Customer { Name = "A", Email = "a@a.com", Password = "pass", IsRegistered = true });
+            await _customerService.Save(new Customer { Name = "B", Email = "b@b.com", Password = "pass", IsRegistered = false });
+
+            var result = await _customerService.Search(null);
+
+            Assert.Equal(2, result.Count);
         }
     }
 }

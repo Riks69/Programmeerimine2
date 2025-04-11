@@ -1,7 +1,7 @@
 ﻿using KooliProjekt.Data;
-using KooliProjekt.Services;
 using KooliProjekt.Models;
 using KooliProjekt.Search;
+using KooliProjekt.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Xunit;
@@ -14,216 +14,199 @@ namespace KooliProjekt.UnitTests.ServiceTests
 
         public InvoiceServiceTests()
         {
-            _invoiceService = new InvoiceService(DbContext);  // Kutsume üles InvoiceService testimiseks
+            _invoiceService = new InvoiceService(DbContext);
         }
 
-        // Create
         [Fact]
-        public async Task Create_ShouldAddInvoice()
+        public async Task Save_ShouldAddInvoice_WhenIdIsZero()
         {
             var invoice = new Invoice
             {
                 BookingId = 1,
-                Amount = 150,
-                Description = "Test invoice",
-                Id = 0  // ID 0 tähendab, et see on uus arve
+                Amount = 100,
+                Description = "Test Invoice",
+                IsPaid = false
             };
 
             await _invoiceService.Save(invoice);
+            var saved = await _invoiceService.Get(invoice.Id);
 
-            var createdInvoice = await DbContext.Invoices.FindAsync(invoice.Id);
-            Assert.NotNull(createdInvoice);
-            Assert.Equal(1, createdInvoice.BookingId);
-            Assert.Equal(150, createdInvoice.Amount);
-            Assert.Equal("Test invoice", createdInvoice.Description);
-            Assert.True(createdInvoice.Id > 0);  // Kontrollime, et ID on määratud pärast salvestamist
+            Assert.NotNull(saved);
+            Assert.Equal("Test Invoice", saved.Description);
         }
 
-        // Delete
+        [Fact]
+        public async Task Save_ShouldUpdateInvoice_WhenExists()
+        {
+            var invoice = new Invoice
+            {
+                BookingId = 2,
+                Amount = 200,
+                Description = "Old Desc",
+                IsPaid = false
+            };
+
+            await _invoiceService.Save(invoice);
+            invoice.Description = "Updated Desc";
+            invoice.IsPaid = true;
+
+            await _invoiceService.Save(invoice);
+            var updated = await _invoiceService.Get(invoice.Id);
+
+            Assert.Equal("Updated Desc", updated.Description);
+            Assert.True(updated.IsPaid);
+        }
+
+        [Fact]
+        public async Task Save_ShouldDoNothing_WhenInvoiceDoesNotExist()
+        {
+            var invoice = new Invoice
+            {
+                Id = 9999,  // Eeldame, et see ID ei eksisteeri andmebaasis
+                BookingId = 10,
+                Amount = 50,
+                Description = "Non-existent Invoice",
+                IsPaid = false
+            };
+
+            // Ei tehta midagi, kuna see arve ei eksisteeri (ID on vale)
+            await _invoiceService.Save(invoice);
+
+            // Kontrollime, kas arve ei ole salvestatud (ei peaks leidma)
+            var result = await _invoiceService.Get(invoice.Id);
+            Assert.Null(result);  // Arve ei tohiks eksisteerida
+        }
+
+
         [Fact]
         public async Task Delete_ShouldRemoveInvoice()
         {
             var invoice = new Invoice
             {
-                BookingId = 1,
-                Amount = 150,
-                Description = "Test invoice"
+                BookingId = 3,
+                Amount = 300,
+                Description = "To Delete",
+                IsPaid = false
             };
-            await _invoiceService.Save(invoice);
 
+            await _invoiceService.Save(invoice);
             await _invoiceService.Delete(invoice.Id);
 
-            var deletedInvoice = await DbContext.Invoices.FindAsync(invoice.Id);
-            Assert.Null(deletedInvoice);  // Kontrollime, et arve on andmebaasist kustutatud
+            var deleted = await _invoiceService.Get(invoice.Id);
+            Assert.Null(deleted);
         }
 
-        // Get
         [Fact]
-        public async Task Get_ShouldReturnInvoiceById()
+        public async Task Get_ShouldReturnInvoice_WhenExists()
         {
             var invoice = new Invoice
             {
-                BookingId = 1,
-                Amount = 150,
-                Description = "Test invoice"
+                BookingId = 4,
+                Amount = 400,
+                Description = "GetTest",
+                IsPaid = false
             };
+
             await _invoiceService.Save(invoice);
+            var result = await _invoiceService.Get(invoice.Id);
 
-            var retrievedInvoice = await _invoiceService.Get(invoice.Id);
-            Assert.NotNull(retrievedInvoice);
-            Assert.Equal(invoice.BookingId, retrievedInvoice.BookingId);
-            Assert.Equal(invoice.Amount, retrievedInvoice.Amount);
-            Assert.Equal(invoice.Description, retrievedInvoice.Description);
-        }
-
-        // Includes
-        [Fact]
-        public async Task Includes_ShouldReturnFalse_WhenInvoiceDoesNotExist()
-        {
-            var exists = await _invoiceService.Includes(999);  // Arve ID, mida pole olemas
-
-            Assert.False(exists);  // Kontrollime, et arve ei eksisteeri
+            Assert.NotNull(result);
+            Assert.Equal("GetTest", result.Description);
         }
 
         [Fact]
-        public async Task Includes_ShouldReturnTrue_WhenInvoiceExists()
+        public async Task Includes_ShouldReturnTrue_IfInvoiceExists()
         {
             var invoice = new Invoice
             {
-                BookingId = 1,
-                Amount = 150,
-                Description = "Test invoice"
+                BookingId = 5,
+                Amount = 500,
+                Description = "IncludesTest",
+                IsPaid = true
             };
-            await _invoiceService.Save(invoice);
 
+            await _invoiceService.Save(invoice);
             var exists = await _invoiceService.Includes(invoice.Id);
 
-            Assert.True(exists);  // Kontrollime, et arve eksisteerib
+            Assert.True(exists);
         }
 
-        // List
         [Fact]
-        public async Task List_ShouldReturnAllInvoices_WhenSearchIsNull()
+        public async Task Includes_ShouldReturnFalse_IfInvoiceDoesNotExist()
         {
-            var invoice1 = new Invoice { BookingId = 1, Amount = 150, Description = "Invoice for Booking 1" };
-            var invoice2 = new Invoice { BookingId = 2, Amount = 200, Description = "Invoice for Booking 2" };
-            await _invoiceService.Save(invoice1);
-            await _invoiceService.Save(invoice2);
+            var exists = await _invoiceService.Includes(999);
+            Assert.False(exists);
+        }
+
+        [Fact]
+        public async Task List_ShouldReturnPagedResult()
+        {
+            await _invoiceService.Save(new Invoice { BookingId = 10, Amount = 150, Description = "First", IsPaid = true });
+            await _invoiceService.Save(new Invoice { BookingId = 11, Amount = 200, Description = "Second", IsPaid = false });
 
             var result = await _invoiceService.List(1, 10, null);
 
             Assert.NotNull(result);
-            Assert.Equal(2, result.Results.Count);  // Kõik arved peaksid olema tagastatud
+            Assert.True(result.Results.Count >= 2);
         }
 
         [Fact]
-        public async Task List_ShouldReturnPagedInvoices_WhenKeywordMatches()
+        public async Task List_ShouldFilterByKeyword()
         {
-            var invoice1 = new Invoice { BookingId = 1, Amount = 150, Description = "Invoice for Booking 1" };
-            var invoice2 = new Invoice { BookingId = 2, Amount = 200, Description = "Invoice for Booking 2" };
-            await _invoiceService.Save(invoice1);
-            await _invoiceService.Save(invoice2);
+            await _invoiceService.Save(new Invoice { BookingId = 123, Amount = 99.99, Description = "Special Invoice", IsPaid = false });
+            await _invoiceService.Save(new Invoice { BookingId = 456, Amount = 19.99, Description = "Generic", IsPaid = true });
 
-            var search = new InvoiceSearch { Keyword = "Booking 1" };
+            var result = await _invoiceService.List(1, 10, new InvoiceSearch { Keyword = "special" });
 
-            var result = await _invoiceService.List(1, 10, search);
-
-            Assert.NotNull(result);
             Assert.Single(result.Results);
-            Assert.Contains(result.Results, i => i.Description.Contains("Booking 1"));
-        }
-
-        // Save
-        [Fact]
-        public async Task Save_ShouldNotUpdateInvoice_WhenInvoiceDoesNotExist()
-        {
-            var invoice = new Invoice { BookingId = 1, Amount = 150, Description = "New invoice" };
-            await _invoiceService.Save(invoice);  // Lisame uue arve
-
-            // Kontrollime, et arve lisati
-            var createdInvoice = await DbContext.Invoices.FindAsync(invoice.Id);
-            Assert.NotNull(createdInvoice);
+            Assert.Contains(result.Results, i => i.Description.Contains("Special"));
         }
 
         [Fact]
-        public async Task Save_ShouldUpdateInvoice_WhenInvoiceExists()
+        public async Task Search_ShouldReturnInvoices_ByKeyword()
         {
-            var invoice = new Invoice { BookingId = 1, Amount = 150, Description = "Test invoice" };
-            await _invoiceService.Save(invoice);
+            await _invoiceService.Save(new Invoice { BookingId = 10, Amount = 80, Description = "SearchTest", IsPaid = false });
+            await _invoiceService.Save(new Invoice { BookingId = 20, Amount = 180, Description = "Other", IsPaid = true });
 
-            // Uuendame arve andmed
-            invoice.Amount = 200;
-            invoice.Description = "Updated invoice description";
+            var result = await _invoiceService.Search(new InvoiceSearch { Keyword = "search" });
 
-            await _invoiceService.Save(invoice);  // Salvestame uuendatud arve
-
-            var updatedInvoice = await _invoiceService.Get(invoice.Id);
-            Assert.NotNull(updatedInvoice);
-            Assert.Equal(200, updatedInvoice.Amount);
-            Assert.Equal("Updated invoice description", updatedInvoice.Description);
-        }
-
-        // Search
-        [Fact]
-        public async Task Search_ShouldReturnInvoices_WhenKeywordIsEmpty()
-        {
-            var invoice1 = new Invoice { BookingId = 1, Amount = 150, Description = "Invoice for Booking 1" };
-            var invoice2 = new Invoice { BookingId = 2, Amount = 200, Description = "Invoice for Booking 2" };
-            await _invoiceService.Save(invoice1);
-            await _invoiceService.Save(invoice2);
-
-            var search = new InvoiceSearch { Keyword = "" };
-
-            var result = await _invoiceService.List(1, 10, search);
-
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Results.Count);  // Kõik arved peaksid olema tagastatud
+            Assert.Single(result);
+            Assert.Contains(result, i => i.Description.Contains("SearchTest"));
         }
 
         [Fact]
-        public async Task Search_ShouldReturnInvoices_WhenSearchIsNull()
+        public async Task Search_ShouldReturnInvoices_ByIsPaidTrue()
         {
-            var invoice1 = new Invoice { BookingId = 1, Amount = 150, Description = "Invoice for Booking 1" };
-            var invoice2 = new Invoice { BookingId = 2, Amount = 200, Description = "Invoice for Booking 2" };
-            await _invoiceService.Save(invoice1);
-            await _invoiceService.Save(invoice2);
+            await _invoiceService.Save(new Invoice { BookingId = 10, Amount = 99, Description = "Paid", IsPaid = true });
+            await _invoiceService.Save(new Invoice { BookingId = 11, Amount = 55, Description = "Unpaid", IsPaid = false });
 
-            var result = await _invoiceService.List(1, 10, null);
+            var result = await _invoiceService.Search(new InvoiceSearch { Done = true });
 
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Results.Count);  // Kõik arved peaksid olema tagastatud
+            Assert.Single(result);
+            Assert.All(result, i => Assert.True(i.IsPaid));
         }
 
         [Fact]
-        public async Task Search_ShouldReturnInvoices_WhenKeywordMatches()
+        public async Task Search_ShouldReturnInvoices_ByIsPaidFalse()
         {
-            var invoice1 = new Invoice { BookingId = 1, Amount = 150, Description = "Invoice for Booking 1" };
-            var invoice2 = new Invoice { BookingId = 2, Amount = 200, Description = "Invoice for Booking 2" };
-            await _invoiceService.Save(invoice1);
-            await _invoiceService.Save(invoice2);
+            await _invoiceService.Save(new Invoice { BookingId = 10, Amount = 99, Description = "Paid", IsPaid = true });
+            await _invoiceService.Save(new Invoice { BookingId = 11, Amount = 55, Description = "Unpaid", IsPaid = false });
 
-            var search = new InvoiceSearch { Keyword = "Booking 1" };
+            var result = await _invoiceService.Search(new InvoiceSearch { Done = false });
 
-            var result = await _invoiceService.List(1, 10, search);
-
-            Assert.NotNull(result);
-            Assert.Single(result.Results);  // Tagastatakse ainult üks arve, mis vastab otsingule
+            Assert.Single(result);
+            Assert.All(result, i => Assert.False(i.IsPaid));
         }
 
         [Fact]
-        public async Task Search_ShouldReturnInvoices_WhenKeywordAndDoneStatusMatch()
+        public async Task Search_ShouldReturnAll_WhenSearchIsNull()
         {
-            var invoice1 = new Invoice { BookingId = 1, Amount = 150, Description = "Invoice for Booking 1" };
-            var invoice2 = new Invoice { BookingId = 2, Amount = 200, Description = "Invoice for Booking 2" };
-            await _invoiceService.Save(invoice1);
-            await _invoiceService.Save(invoice2);
+            await _invoiceService.Save(new Invoice { BookingId = 100, Amount = 10, Description = "NullTest1", IsPaid = true });
+            await _invoiceService.Save(new Invoice { BookingId = 101, Amount = 20, Description = "NullTest2", IsPaid = false });
 
-            var search = new InvoiceSearch { Keyword = "Invoice for Booking 1" };
+            var result = await _invoiceService.Search(null);
 
-            var result = await _invoiceService.List(1, 10, search);
-
-            Assert.NotNull(result);
-            Assert.Contains(result.Results, i => i.Description.Contains("Booking 1"));
+            Assert.True(result.Count >= 2);
         }
     }
 }

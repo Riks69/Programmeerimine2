@@ -38,15 +38,42 @@ namespace KooliProjekt.Services
         {
             var query = _context.Customers.AsQueryable();
 
+            // Kui otsingukriteerium on olemas ja Keyword pole tühi
             if (search != null && !string.IsNullOrEmpty(search.Keyword))
             {
                 query = query.Where(h =>
                     EF.Functions.Like(h.Name.ToString(), $"%{search.Keyword}%") ||
                     EF.Functions.Like(h.Password.ToString(), $"%{search.Keyword}%") ||
-                    EF.Functions.Like(h.Email.ToString(), $"%{search.Keyword}%"));
+                    EF.Functions.Like(h.Email.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.IsRegistered.ToString(), $"%{search.Keyword}%"));
             }
 
             return await query.GetPagedAsync(page, pageSize);
+        }
+
+
+        // Uus Search meetod
+        public async Task<List<Customer>> Search(CustomerSearch search)
+        {
+            IQueryable<Customer> query = _context.Customers;
+
+            // Filtreeri Keyword järgi (see peaks olema esimene, et mitte mõjutada teisi filtreid)
+            if (search != null && !string.IsNullOrEmpty(search.Keyword))
+            {
+                query = query.Where(h =>
+                    EF.Functions.Like(h.Name.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.Password.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.Email.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.IsRegistered.ToString(), $"%{search.Keyword}%"));
+            }
+
+            // Filtreeri Done (lõpetatud) järgi, kui see on määratud
+            if (search?.Done.HasValue == true)
+            {
+                query = query.Where(h => h.IsRegistered == search.Done);
+            }
+
+            return await query.ToListAsync(); // Tagastab kõik vastavad broneeringud
         }
 
 
@@ -55,24 +82,29 @@ namespace KooliProjekt.Services
         {
             if (customer.Id == 0)
             {
+                // Kui ID on 0, siis lisame uue broneeringu
                 _context.Customers.Add(customer);
             }
             else
             {
-                var existingCustomers = await _context.Customers.FindAsync(customer.Id);
+                // Kui ID on olemas, siis otsime broneeringut ID järgi
+                var existingCustomer = await _context.Customers.FindAsync(customer.Id);
 
-                if (existingCustomers != null)
+                if (existingCustomer == null)
                 {
-                    // If it exists, update the entity
-                    _context.Entry(existingCustomers).State = EntityState.Modified;
+                    // Kui broneeringut ei leita, siis ei tee midagi
+                    return;
                 }
-                else
-                {
-                    _context.Customers.Add(customer);
-                }
+
+                // Kui broneering on olemas, siis uuendame andmeid
+                existingCustomer.Name = customer.Name;
+                existingCustomer.Password = customer.Password;
+                existingCustomer.Email = customer.Email;
+                existingCustomer.IsRegistered = customer.IsRegistered;
             }
+
+            // Tagame, et muudatused salvestatakse ja ID määratakse õigesti
             await _context.SaveChangesAsync();
         }
     }
 }
-

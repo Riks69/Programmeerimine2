@@ -216,6 +216,7 @@ var assemblies = [
       { "name": "KooliProjekt.Components.PagerViewComponent", "rp": "KooliProjekt_PagerViewComponent.html", "cl": 0, "ucl": 3, "cal": 3, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Controllers.BookingsController", "rp": "KooliProjekt_BookingsController.html", "cl": 63, "ucl": 0, "cal": 63, "tl": 135, "cb": 20, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Controllers.CarsController", "rp": "KooliProjekt_CarsController.html", "cl": 63, "ucl": 0, "cal": 63, "tl": 135, "cb": 20, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Controllers.CustomersApiController", "rp": "KooliProjekt_CustomersApiController.html", "cl": 0, "ucl": 34, "cal": 34, "tl": 79, "cb": 0, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Controllers.CustomersController", "rp": "KooliProjekt_CustomersController.html", "cl": 63, "ucl": 0, "cal": 63, "tl": 135, "cb": 20, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Controllers.HomeController", "rp": "KooliProjekt_HomeController.html", "cl": 9, "ucl": 0, "cal": 9, "tl": 26, "cb": 3, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Controllers.InvoicesController", "rp": "KooliProjekt_InvoicesController.html", "cl": 63, "ucl": 0, "cal": 63, "tl": 135, "cb": 20, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -227,7 +228,7 @@ var assemblies = [
       { "name": "KooliProjekt.Data.Migrations.Andreasgt", "rp": "KooliProjekt_Andreasgt.html", "cl": 0, "ucl": 435, "cal": 435, "tl": 498, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Data.Migrations.ApplicationDbContextModelSnapshot", "rp": "KooliProjekt_ApplicationDbContextModelSnapshot.html", "cl": 0, "ucl": 360, "cal": 360, "tl": 397, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Data.Migrations.CreateIdentitySchema", "rp": "KooliProjekt_CreateIdentitySchema.html", "cl": 0, "ucl": 433, "cal": 433, "tl": 497, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Data.PagedResult<T>", "rp": "KooliProjekt_PagedResult_1.html", "cl": 5, "ucl": 0, "cal": 5, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Data.PagedResult<T>", "rp": "KooliProjekt_PagedResult_1.html", "cl": 5, "ucl": 1, "cal": 6, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Data.PagedResultBase", "rp": "KooliProjekt_PagedResultBase.html", "cl": 4, "ucl": 0, "cal": 4, "tl": 10, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Data.PagingExtensions", "rp": "KooliProjekt_PagingExtensions.html", "cl": 15, "ucl": 3, "cal": 18, "tl": 32, "cb": 1, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Data.SeedData", "rp": "KooliProjekt_SeedData.html", "cl": 0, "ucl": 82, "cal": 82, "tl": 122, "cb": 0, "tb": 8, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -238,13 +239,13 @@ var assemblies = [
       { "name": "KooliProjekt.Models.InvoiceIndexModel", "rp": "KooliProjekt_InvoiceIndexModel.html", "cl": 2, "ucl": 0, "cal": 2, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Program", "rp": "KooliProjekt_Program.html", "cl": 0, "ucl": 41, "cal": 41, "tl": 68, "cb": 0, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Search.BookingSearch", "rp": "KooliProjekt_BookingSearch.html", "cl": 2, "ucl": 0, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Search.CarSearch", "rp": "KooliProjekt_CarSearch.html", "cl": 1, "ucl": 1, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Search.CustomerSearch", "rp": "KooliProjekt_CustomerSearch.html", "cl": 1, "ucl": 1, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Search.InvoiceSearch", "rp": "KooliProjekt_InvoiceSearch.html", "cl": 1, "ucl": 1, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Search.CarSearch", "rp": "KooliProjekt_CarSearch.html", "cl": 2, "ucl": 0, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Search.CustomerSearch", "rp": "KooliProjekt_CustomerSearch.html", "cl": 2, "ucl": 0, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Search.InvoiceSearch", "rp": "KooliProjekt_InvoiceSearch.html", "cl": 2, "ucl": 0, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "KooliProjekt.Services.BookingService", "rp": "KooliProjekt_BookingService.html", "cl": 67, "ucl": 0, "cal": 67, "tl": 114, "cb": 18, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Services.CarService", "rp": "KooliProjekt_CarService.html", "cl": 47, "ucl": 19, "cal": 66, "tl": 113, "cb": 9, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Services.CustomerService", "rp": "KooliProjekt_CustomerService.html", "cl": 43, "ucl": 3, "cal": 46, "tl": 78, "cb": 9, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "KooliProjekt.Services.InvoiceService", "rp": "KooliProjekt_InvoiceService.html", "cl": 45, "ucl": 3, "cal": 48, "tl": 86, "cb": 9, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Services.CarService", "rp": "KooliProjekt_CarService.html", "cl": 66, "ucl": 0, "cal": 66, "tl": 113, "cb": 18, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Services.CustomerService", "rp": "KooliProjekt_CustomerService.html", "cl": 63, "ucl": 0, "cal": 63, "tl": 110, "cb": 18, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "KooliProjekt.Services.InvoiceService", "rp": "KooliProjekt_InvoiceService.html", "cl": 63, "ucl": 0, "cal": 63, "tl": 110, "cb": 18, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
 ];
 
@@ -253,17 +254,9 @@ var metrics = [{ "name": "Crap Score", "abbreviation": "crp", "explanationUrl": 
 var historicCoverageExecutionTimes = [];
 
 var riskHotspotMetrics = [
-      { "name": "Crap Score", "explanationUrl": "https://googletesting.blogspot.de/2011/02/this-code-is-crap.html" },
-      { "name": "Cyclomatic complexity", "explanationUrl": "https://en.wikipedia.org/wiki/Cyclomatic_complexity" },
 ];
 
 var riskHotspots = [
-  {
-    "assembly": "KooliProjekt", "class": "KooliProjekt.Services.CarService", "reportPath": "KooliProjekt_CarService.html", "methodName": "Search()", "methodShortName": "Search()", "fileIndex": 0, "line": 58,
-    "metrics": [
-      { "value": 72, "exceeded": true },
-      { "value": 8, "exceeded": false },
-    ]},
 ];
 
 var branchCoverageAvailable = true;
