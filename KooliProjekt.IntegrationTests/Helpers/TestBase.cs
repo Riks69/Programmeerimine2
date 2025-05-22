@@ -19,9 +19,10 @@ namespace KooliProjekt.IntegrationTests.Helpers
 
         public void Dispose()
         {
-            // Kustutame mälupõhise andmebaasi pärast iga testi lõppu
+            // Veendume, et andmebaas on loodud ja siis kustutame
             var dbContext = _context;
-            dbContext.Database.EnsureDeleted();  // Kustutame mälupõhise andmebaasi
+            dbContext.Database.EnsureCreated(); // Veendume, et tabelid on loodud enne testimist
+            dbContext.Database.EnsureDeleted();  // Kustutame mälupõhise andmebaasi pärast iga testi lõppu
         }
     }
 }

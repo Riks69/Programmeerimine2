@@ -14,11 +14,14 @@ namespace KooliProjekt.IntegrationTests.Helpers
                             .ConfigureWebHost(builder =>
                             {
                                 builder.UseContentRoot(".");
+
+                                // Seadistame keskkonna nime
                                 builder.ConfigureAppConfiguration((c, b) =>
                                 {
                                     c.HostingEnvironment.ApplicationName = "KooliProjekt";
                                 });
-                                builder.UseStartup<TTestStartup>();
+
+                                builder.UseStartup<TTestStartup>();  // Kasutame FakeStartup klassi
                             })
                             .ConfigureAppConfiguration((context, conf) =>
                             {
