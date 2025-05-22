@@ -25,7 +25,7 @@ namespace KooliProjekt.IntegrationTests.Helpers
                                 var projectDir = Directory.GetCurrentDirectory();
                                 var configPath = Path.Combine(projectDir, "appsettings.json");
 
-                                conf.AddJsonFile(configPath);                                   
+                                conf.AddJsonFile(configPath);  // Lisa appsettings.json konfigureerimiseks
                             });
             return host;
         }

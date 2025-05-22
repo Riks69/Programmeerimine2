@@ -1,13 +1,13 @@
 ﻿using System;
 using KooliProjekt.Controllers;
 using KooliProjekt.Data;
+using KooliProjekt.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
 
 namespace KooliProjekt.IntegrationTests.Helpers
 {
@@ -22,27 +22,32 @@ namespace KooliProjekt.IntegrationTests.Helpers
 
         public virtual void ConfigureServices(IServiceCollection services)
         {
+            // Kasutame mälupõhist andmebaasi iga testi jaoks
             var dbGuid = Guid.NewGuid().ToString();
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlServer(Configuration.GetConnectionString("TestConnection"));
+                options.UseInMemoryDatabase(dbGuid);  // Eraldi mälupõhine andmebaas iga testi jaoks
             });
 
+            // Lisame oma teenused
+            services.AddScoped<IBookingService, BookingService>();  // Booking teenus
+            services.AddScoped<ICarService, CarService>();          // Car teenus
+            services.AddScoped<ICustomerService, CustomerService>(); // Customer teenus
+            services.AddScoped<IInvoiceService, InvoiceService>();  // Invoice teenus
+
+            // Identity teenuste registreerimine
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            //services.AddAutoMapper(GetType().Assembly);
             services.AddControllersWithViews()
                     .AddApplicationPart(typeof(HomeController).Assembly);
-
-            //services.AddScoped<IFileClient, LocalFileClient>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Seadistame testide jaoks vajalikud keskmised teenused
             app.UseStaticFiles();
             app.UseRouting();
-
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -53,33 +58,18 @@ namespace KooliProjekt.IntegrationTests.Helpers
                     pattern: "{controller=Home}/{action=Index}/{id?}/{pathStr?}");
             });
 
+            // Veendume, et andmebaas oleks loodud
             var serviceScopeFactory = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
             using (var serviceScope = serviceScopeFactory.CreateScope())
             {
                 var dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
                 if (dbContext == null)
                 {
-                    throw new NullReferenceException("Cannot get instance of dbContext");
+                    throw new NullReferenceException("Ei suuda leida dbContext'i");
                 }
 
-                if (dbContext.Database.GetDbConnection().ConnectionString.ToLower().Contains("my.db"))
-                {
-                    throw new Exception("LIVE SETTINGS IN TESTS!");
-                }
-
-                //EnsureDatabase(dbContext);
+                dbContext.Database.EnsureCreated();  // Loome mälupõhise andmebaasi iga testi jaoks
             }
         }
-
-        //private void EnsureDatabase(ApplicationDbContext dbContext)
-        //{
-        //    dbContext.Database.EnsureDeleted();
-        //    dbContext.Database.EnsureCreated();
-
-        //    if (!dbContext.Degustation.Any() || !dbContext.Batch.Any() || !dbContext.BatchIngredient.Any() || !dbContext.Batchlog.Any() || !dbContext.Batch.Any() || !dbContext.User.Any())
-        //    {
-        //        SeedData.Initialize(dbContext);
-        //    }
-        //}
     }
 }
