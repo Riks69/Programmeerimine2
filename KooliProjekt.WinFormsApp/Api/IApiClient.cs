@@ -2,8 +2,8 @@
 {
     public interface IApiClient
     {
-        Task<Result<List<TodoList>>> List();
-        Task Save(TodoList list);
+        Task<Result<List<Customer>>> List();
+        Task Save(Customer list);
         Task Delete(int id);
     }
 }

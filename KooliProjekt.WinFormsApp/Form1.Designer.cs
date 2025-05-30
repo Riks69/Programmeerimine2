@@ -2,15 +2,8 @@
 {
     partial class Form1
     {
-        /// <summary>
-        ///  Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        ///  Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -22,10 +15,6 @@
 
         #region Windows Form Designer generated code
 
-        /// <summary>
-        ///  Required method for Designer support - do not modify
-        ///  the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
             TodoListsGrid = new DataGridView();
@@ -36,8 +25,14 @@
             NewButton = new Button();
             SaveButton = new Button();
             DeleteButton = new Button();
+            EmailLabel = new Label();        // E-posti label
+            EmailField = new TextBox();      // E-posti sisestusväli
+            PasswordLabel = new Label();     // Parooli label
+            PasswordField = new TextBox();   // Parooli sisestusväli
+
             ((System.ComponentModel.ISupportInitialize)TodoListsGrid).BeginInit();
             SuspendLayout();
+
             // 
             // TodoListsGrid
             // 
@@ -48,6 +43,7 @@
             TodoListsGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             TodoListsGrid.Size = new Size(419, 432);
             TodoListsGrid.TabIndex = 0;
+
             // 
             // IdLabel
             // 
@@ -57,6 +53,7 @@
             IdLabel.Size = new Size(21, 15);
             IdLabel.TabIndex = 1;
             IdLabel.Text = "ID:";
+
             // 
             // IdField
             // 
@@ -65,6 +62,7 @@
             IdField.ReadOnly = true;
             IdField.Size = new Size(281, 23);
             IdField.TabIndex = 2;
+
             // 
             // TitleLabel
             // 
@@ -74,6 +72,7 @@
             TitleLabel.Size = new Size(33, 15);
             TitleLabel.TabIndex = 3;
             TitleLabel.Text = "Title:";
+
             // 
             // TitleField
             // 
@@ -81,39 +80,84 @@
             TitleField.Name = "TitleField";
             TitleField.Size = new Size(281, 23);
             TitleField.TabIndex = 4;
+
+            // 
+            // EmailLabel
+            // 
+            EmailLabel.AutoSize = true;
+            EmailLabel.Location = new Point(460, 96);
+            EmailLabel.Name = "EmailLabel";
+            EmailLabel.Size = new Size(41, 15);
+            EmailLabel.TabIndex = 8;
+            EmailLabel.Text = "Email:";
+
+            // 
+            // EmailField
+            // 
+            EmailField.Location = new Point(507, 93);
+            EmailField.Name = "EmailField";
+            EmailField.Size = new Size(281, 23);
+            EmailField.TabIndex = 9;
+
+            // 
+            // PasswordLabel
+            // 
+            PasswordLabel.AutoSize = true;
+            PasswordLabel.Location = new Point(460, 136);
+            PasswordLabel.Name = "PasswordLabel";
+            PasswordLabel.Size = new Size(58, 15);
+            PasswordLabel.TabIndex = 10;
+            PasswordLabel.Text = "Password:";
+
+            // 
+            // PasswordField
+            // 
+            PasswordField.Location = new Point(507, 133);
+            PasswordField.Name = "PasswordField";
+            PasswordField.Size = new Size(281, 23);
+            PasswordField.TabIndex = 11;
+            PasswordField.UseSystemPasswordChar = true;  // Parooli peitmine
+
             // 
             // NewButton
             // 
-            NewButton.Location = new Point(522, 96);
+            NewButton.Location = new Point(522, 172);
             NewButton.Name = "NewButton";
             NewButton.Size = new Size(75, 23);
             NewButton.TabIndex = 5;
             NewButton.Text = "New";
             NewButton.UseVisualStyleBackColor = true;
+
             // 
             // SaveButton
             // 
-            SaveButton.Location = new Point(603, 96);
+            SaveButton.Location = new Point(603, 172);
             SaveButton.Name = "SaveButton";
             SaveButton.Size = new Size(75, 23);
             SaveButton.TabIndex = 6;
             SaveButton.Text = "Save";
             SaveButton.UseVisualStyleBackColor = true;
+
             // 
             // DeleteButton
             // 
-            DeleteButton.Location = new Point(684, 96);
+            DeleteButton.Location = new Point(684, 172);
             DeleteButton.Name = "DeleteButton";
             DeleteButton.Size = new Size(75, 23);
             DeleteButton.TabIndex = 7;
             DeleteButton.Text = "Delete";
             DeleteButton.UseVisualStyleBackColor = true;
+
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(EmailField);
+            Controls.Add(EmailLabel);
+            Controls.Add(PasswordField);
+            Controls.Add(PasswordLabel);
             Controls.Add(DeleteButton);
             Controls.Add(SaveButton);
             Controls.Add(NewButton);
@@ -139,5 +183,9 @@
         private Button NewButton;
         private Button SaveButton;
         private Button DeleteButton;
+        private Label EmailLabel;   // Uus label e-posti jaoks
+        private TextBox EmailField; // Uus textBox e-posti jaoks
+        private Label PasswordLabel;  // Uus label parooli jaoks
+        private TextBox PasswordField; // Uus textBox parooli jaoks
     }
 }

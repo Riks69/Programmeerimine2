@@ -13,13 +13,13 @@ namespace KooliProjekt.WinFormsApp.Api
             _httpClient.BaseAddress = new Uri("https://localhost:7136/api/");
         }
 
-        public async Task<Result<List<TodoList>>> List()
+        public async Task<Result<List<Customer>>> List()
         {
-            var result = new Result<List<TodoList>>();
+            var result = new Result<List<Customer>>();
 
             try
             {
-                result.Value = await _httpClient.GetFromJsonAsync<List<TodoList>>("TodoLists");
+                result.Value = await _httpClient.GetFromJsonAsync<List<Customer>>("Customers");
             }
             catch (HttpRequestException ex)
             {
@@ -40,21 +40,21 @@ namespace KooliProjekt.WinFormsApp.Api
             return result;
         }
 
-        public async Task Save(TodoList list)
+        public async Task Save(Customer list)
         {
             if(list.Id == 0)
             {
-                await _httpClient.PostAsJsonAsync("TodoLists", list);
+                await _httpClient.PostAsJsonAsync("Customers", list);
             }
             else
             {
-                await _httpClient.PutAsJsonAsync("TodoLists/" + list.Id, list);
+                await _httpClient.PutAsJsonAsync("Customers/" + list.Id, list);
             }
         }
 
         public async Task Delete(int id)
         {
-            await _httpClient.DeleteAsync("TodoLists/" + id);
+            await _httpClient.DeleteAsync("Customers/" + id);
         }
     }
 }
