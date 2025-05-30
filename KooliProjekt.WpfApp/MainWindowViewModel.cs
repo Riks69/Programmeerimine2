@@ -1,18 +1,16 @@
-﻿using System.Collections.ObjectModel;
+﻿﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
-using KooliProjekt.PublicApi.Api;
-using KooliProjekt.WpfApp;
+using KooliProjekt.WpfApp.Api;
 
 namespace KooliProjekt.WpfApp
 {
     public class MainWindowViewModel : NotifyPropertyChangedBase
     {
-        public ObservableCollection<Panel> Lists { get; private set; }
+        public ObservableCollection<Customer> Lists { get; private set; }
         public ICommand NewCommand { get; private set; }
         public ICommand SaveCommand { get; private set; }
         public ICommand DeleteCommand { get; private set; }
-        public Predicate<KooliProjekt.PublicApi.Api.Panel> ConfirmDelete { get; set; }
-        public Action<string> OnError { get; set; }
+        public Predicate<Customer> ConfirmDelete { get; set; }
 
         private readonly IApiClient _apiClient;
 
@@ -24,17 +22,17 @@ namespace KooliProjekt.WpfApp
         {
             _apiClient = apiClient;
 
-            Lists = new ObservableCollection<Panel>();
+            Lists = new ObservableCollection<Customer>();
 
-            NewCommand = new RelayCommand<Panel>(
+            NewCommand = new RelayCommand<Customer>(
                 // Execute
                 list =>
                 {
-                    SelectedItem = new Panel();
+                    SelectedItem = new Customer();
                 }
             );
 
-            SaveCommand = new RelayCommand<Panel>(
+            SaveCommand = new RelayCommand<Customer>(
                 // Execute
                 async list =>
                 {
@@ -48,14 +46,14 @@ namespace KooliProjekt.WpfApp
                 }
             );
 
-            DeleteCommand = new RelayCommand<Panel>(
+            DeleteCommand = new RelayCommand<Customer>(
                 // Execute
                 async list =>
                 {
-                    if (ConfirmDelete != null)
+                    if(ConfirmDelete != null)
                     {
                         var result = ConfirmDelete(SelectedItem);
-                        if (!result)
+                        if(!result)
                         {
                             return;
                         }
@@ -77,26 +75,24 @@ namespace KooliProjekt.WpfApp
         {
             Lists.Clear();
 
-            var lists = await _apiClient.List();
+            var result = await _apiClient.List();
 
-            if (lists.HasError)
+            if (result.Value != null)
             {
-                if (OnError != null)
+                foreach (var customer in result.Value)
                 {
-                    OnError(lists.Errors.First().Value.First());
+                    Lists.Add(customer);
                 }
-
-                return;
             }
-
-            foreach (var list in lists.Value)
+            else
             {
-                Lists.Add(list);
+                // Võib-olla logi vea info või näita kasutajale teadet
+                // MessageBox.Show(result.Error); // kui UI kontekstis sobib
             }
         }
 
-        private Panel _selectedItem;
-        public Panel SelectedItem
+        private Customer _selectedItem;
+        public Customer SelectedItem
         {
             get
             {
