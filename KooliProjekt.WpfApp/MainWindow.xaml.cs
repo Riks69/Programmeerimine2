@@ -40,6 +40,6 @@ public partial class MainWindow : Window
 
         DataContext = viewModel;
 
-        await viewModel.Load();
+        await viewModel.LoadCustomers();
     }
 }

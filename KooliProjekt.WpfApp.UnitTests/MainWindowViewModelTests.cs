@@ -1,11 +1,13 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using KooliProjekt.WpfApp;
 using KooliProjekt.WpfApp.Api;
+using KooliProjekt.WpfApp.ApiAdd;
 using Moq;
 using Xunit;
 
-namespace KooliProjekt.Tests
+namespace KooliProjekt.WpfApp.UnitTests
 {
     public class MainWindowViewModelTests
     {
@@ -26,12 +28,13 @@ namespace KooliProjekt.Tests
             var viewModel = new MainWindowViewModel(mockApiClient.Object);
 
             // Act
-            await viewModel.Load();
+            await viewModel.LoadCustomers();
+            var lists = (ObservableCollection<Customer>)viewModel.Lists;
 
             // Assert
-            Assert.Equal(2, viewModel.Lists.Count);
-            Assert.Equal("John Doe", viewModel.Lists[0].Name);
-            Assert.Equal("Jane Smith", viewModel.Lists[1].Name);
+            Assert.Equal(2, lists.Count);
+        Assert.Equal("John Doe", lists[0].Name);  // Correct usage
+            Assert.Equal("Jane Smith", lists[1].Name);
         }
 
         [Fact]
@@ -40,17 +43,19 @@ namespace KooliProjekt.Tests
             // Arrange
             var mockApiClient = new Mock<IApiClient>();
             var result = new Result<List<Customer>> { Value = null, Error = "Some error" };
-            mockApiClient.Setup(api => api.List()).ReturnsAsync(result);
+            mockApiClient.Setup(api => api.List()).ReturnsAsync(result);  // Tagastab Result, mille väärtus on null
 
             var viewModel = new MainWindowViewModel(mockApiClient.Object);
 
             // Act
-            var exception = await Record.ExceptionAsync(() => viewModel.Load());
+            var exception = await Record.ExceptionAsync(() => viewModel.LoadCustomers());  // Kasutage Load meetodit, mitte LoadCustomers
+            var lists = viewModel.Lists;  // Sellel peaks olema õiged andmed (ObservableCollection<Customer>)
 
             // Assert
-            Assert.Null(exception);
-            Assert.Empty(viewModel.Lists);
+            Assert.Null(exception);  // Veenduge, et ei viskaks erandit
+            Assert.Empty((string)lists);  // Kui API tagastab null, siis peaks list tühi olema
         }
+
 
         [Fact]
         public async Task SaveCommand_ShouldSaveCustomer_WhenValidCustomerIsSelected()
@@ -67,9 +72,9 @@ namespace KooliProjekt.Tests
             };
 
             var viewModel = new MainWindowViewModel(mockApiClient.Object);
-            viewModel.SelectedItem = customer;
+            viewModel.SelectedCustomer  = customer;
 
-            mockApiClient.Setup(api => api.Save(It.IsAny<Customer>())).Returns(Task.CompletedTask);
+            mockApiClient.Setup(api => api.Save(It.IsAny<Customer>())).Returns(Task.FromResult(Result.Success()));
 
             // Act
             viewModel.SaveCommand.Execute(customer);
@@ -93,16 +98,16 @@ namespace KooliProjekt.Tests
             };
 
             var viewModel = new MainWindowViewModel(mockApiClient.Object);
-            viewModel.SelectedItem = customer;
+            viewModel.SelectedCustomer = customer;
 
-            mockApiClient.Setup(api => api.Delete(It.IsAny<int>())).Returns(Task.CompletedTask);
+            mockApiClient.Setup(api => api.Delete(It.IsAny<int>())).Returns(Task.FromResult(Result.Success()));  // Tagastab edu Result
 
             // Act
             viewModel.DeleteCommand.Execute(customer);
 
             // Assert
             mockApiClient.Verify(api => api.Delete(It.Is<int>(id => id == customer.Id)), Times.Once);
-            Assert.Null(viewModel.SelectedItem); // SelectedItem should be null after deletion
+            Assert.Null(viewModel.SelectedCustomer); // SelectedItem should be null after deletion
         }
 
         [Fact]
@@ -120,7 +125,7 @@ namespace KooliProjekt.Tests
             };
 
             var viewModel = new MainWindowViewModel(mockApiClient.Object);
-            viewModel.SelectedItem = customer;
+            viewModel.SelectedCustomer = customer;
             viewModel.ConfirmDelete = c => false; // Simulate user canceling the delete action
 
             // Act
@@ -128,7 +133,7 @@ namespace KooliProjekt.Tests
 
             // Assert
             mockApiClient.Verify(api => api.Delete(It.IsAny<int>()), Times.Never); // Delete should not be called
-            Assert.Equal(customer, viewModel.SelectedItem); // SelectedItem should remain the same
+            Assert.Equal(customer, viewModel.SelectedCustomer); // SelectedItem should remain the same
         }
     }
 }

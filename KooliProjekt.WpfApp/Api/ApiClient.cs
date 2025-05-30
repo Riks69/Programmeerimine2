@@ -1,8 +1,8 @@
-﻿using System.IO;
+﻿using KooliProjekt.WpfApp.ApiAdd;
 using System.Net.Http;
 using System.Net.Http.Json;
 
-namespace KooliProjekt.WpfApp.Api
+namespace  KooliProjekt.WpfApp.Api
 {
     public class ApiClient : IApiClient
     {
@@ -16,53 +16,53 @@ namespace KooliProjekt.WpfApp.Api
 
         public async Task<Result<List<Customer>>> List()
         {
-            var result = new Result<List<Customer>>();
-
             try
             {
-                result.Value = await _httpClient.GetFromJsonAsync<List<Customer>>("Customers");
+                var customers = await _httpClient.GetFromJsonAsync<List<Customer>>("Customers");
+                return new Result<List<Customer>> { Value = customers };
             }
             catch (Exception ex)
             {
-                result.Error = ex.Message;
+                return new Result<List<Customer>> { Error = ex.Message };
             }
-
-            return result;
         }
 
-        public async Task Save(Customer list)
+        public async Task<Result> Save(Customer customer)
         {
-
             try
             {
-                if (list.Id == 0)
-                {
-                    await _httpClient.PostAsJsonAsync("Customers", list);
-                }
+                HttpResponseMessage response;
+
+                if (customer.Id == 0)
+                    response = await _httpClient.PostAsJsonAsync("Customers", customer);
                 else
-                {
-                    await _httpClient.PutAsJsonAsync("Customers/" + list.Id, list);
+                    response = await _httpClient.PutAsJsonAsync($"Customers/{customer.Id}", customer);
 
-                }
+                if (!response.IsSuccessStatusCode)
+                    return new Result { Error = $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}" };
 
+                return new Result();
             }
             catch (Exception ex)
             {
-
+                return new Result { Error = ex.Message };
             }
-
         }
 
-        public async Task Delete(int id)
+        public async Task<Result> Delete(int id)
         {
             try
             {
-                await _httpClient.DeleteAsync("Customers/" + id);
+                var response = await _httpClient.DeleteAsync($"Customers/{id}");
 
+                if (!response.IsSuccessStatusCode)
+                    return new Result { Error = $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}" };
+
+                return new Result();
             }
             catch (Exception ex)
             {
-
+                return new Result { Error = ex.Message };
             }
         }
     }

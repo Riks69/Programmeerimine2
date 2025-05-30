@@ -1,4 +1,5 @@
-﻿﻿using System.Collections.ObjectModel;
+﻿using KooliProjekt.WpfApp;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 using KooliProjekt.WpfApp.Api;
 
@@ -6,13 +7,27 @@ namespace KooliProjekt.WpfApp
 {
     public class MainWindowViewModel : NotifyPropertyChangedBase
     {
-        public ObservableCollection<Customer> Lists { get; private set; }
+        public ObservableCollection<Customer> Customers { get; private set; }
         public ICommand NewCommand { get; private set; }
         public ICommand SaveCommand { get; private set; }
         public ICommand DeleteCommand { get; private set; }
         public Predicate<Customer> ConfirmDelete { get; set; }
+        public Action<string> OnError { get; set; }
 
         private readonly IApiClient _apiClient;
+
+        private Customer _selectedCustomer;
+        public Customer SelectedCustomer
+        {
+            get { return _selectedCustomer; }
+            set
+            {
+                _selectedCustomer = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public object Lists { get; set; }
 
         public MainWindowViewModel() : this(new ApiClient())
         {
@@ -21,87 +36,61 @@ namespace KooliProjekt.WpfApp
         public MainWindowViewModel(IApiClient apiClient)
         {
             _apiClient = apiClient;
-
-            Lists = new ObservableCollection<Customer>();
+            Customers = new ObservableCollection<Customer>();
 
             NewCommand = new RelayCommand<Customer>(
-                // Execute
-                list =>
-                {
-                    SelectedItem = new Customer();
-                }
+                customer => { SelectedCustomer = new Customer(); }
             );
 
             SaveCommand = new RelayCommand<Customer>(
-                // Execute
-                async list =>
+                async customer =>
                 {
-                    await _apiClient.Save(SelectedItem);
-                    await Load();
+                    var result = await _apiClient.Save(SelectedCustomer);
+                    if (result.HasError)
+                    {
+                        OnError?.Invoke($"Error while saving customer: {result.Error}");
+                        return;
+                    }
+
+                    await LoadCustomers();
                 },
-                // CanExecute
-                list =>
-                {
-                    return SelectedItem != null;
-                }
+                customer => SelectedCustomer != null
             );
 
             DeleteCommand = new RelayCommand<Customer>(
-                // Execute
-                async list =>
+                async customer =>
                 {
-                    if(ConfirmDelete != null)
+                    if (ConfirmDelete?.Invoke(SelectedCustomer) ?? true)
                     {
-                        var result = ConfirmDelete(SelectedItem);
-                        if(!result)
+                        var result = await _apiClient.Delete(SelectedCustomer.Id);
+                        if (result.HasError)
                         {
+                            OnError?.Invoke($"Error while deleting customer: {result.Error}");
                             return;
                         }
-                    }
 
-                    await _apiClient.Delete(SelectedItem.Id);
-                    Lists.Remove(SelectedItem);
-                    SelectedItem = null;
+                        Customers.Remove(SelectedCustomer);
+                        SelectedCustomer = null;
+                    }
                 },
-                // CanExecute
-                list =>
-                {
-                    return SelectedItem != null;
-                }
+                customer => SelectedCustomer != null
             );
         }
 
-        public async Task Load()
+        public async Task LoadCustomers()
         {
-            Lists.Clear();
+            Customers.Clear();
 
             var result = await _apiClient.List();
+            if (result.HasError)
+            {
+                OnError?.Invoke($"Error while loading customers: {result.Error}");
+                return;
+            }
 
-            if (result.Value != null)
+            foreach (var customer in result.Value)
             {
-                foreach (var customer in result.Value)
-                {
-                    Lists.Add(customer);
-                }
-            }
-            else
-            {
-                // Võib-olla logi vea info või näita kasutajale teadet
-                // MessageBox.Show(result.Error); // kui UI kontekstis sobib
-            }
-        }
-
-        private Customer _selectedItem;
-        public Customer SelectedItem
-        {
-            get
-            {
-                return _selectedItem;
-            }
-            set
-            {
-                _selectedItem = value;
-                NotifyPropertyChanged();
+                Customers.Add(customer);
             }
         }
     }
