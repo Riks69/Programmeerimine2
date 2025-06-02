@@ -38,17 +38,42 @@ namespace KooliProjekt.Services
         {
             var query = _context.Invoices.AsQueryable();
 
+            // Kui otsingukriteerium on olemas ja Keyword pole tühi
             if (search != null && !string.IsNullOrEmpty(search.Keyword))
             {
                 query = query.Where(h =>
                     EF.Functions.Like(h.BookingId.ToString(), $"%{search.Keyword}%") ||
                     EF.Functions.Like(h.Amount.ToString(), $"%{search.Keyword}%") ||
-                    EF.Functions.Like(h.Description.ToString(), $"%{search.Keyword}%"));
-
-
+                    EF.Functions.Like(h.Description.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.IsPaid.ToString(), $"%{search.Keyword}%"));
             }
 
             return await query.GetPagedAsync(page, pageSize);
+        }
+
+
+        // Uus Search meetod
+        public async Task<List<Invoice>> Search(InvoiceSearch search)
+        {
+            IQueryable<Invoice> query = _context.Invoices;
+
+            // Filtreeri Keyword järgi (see peaks olema esimene, et mitte mõjutada teisi filtreid)
+            if (search != null && !string.IsNullOrEmpty(search.Keyword))
+            {
+                query = query.Where(h =>
+                    EF.Functions.Like(h.BookingId.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.Amount.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.Description.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.IsPaid.ToString(), $"%{search.Keyword}%"));
+            }
+
+            // Filtreeri Done (lõpetatud) järgi, kui see on määratud
+            if (search?.Done.HasValue == true)
+            {
+                query = query.Where(h => h.IsPaid == search.Done);
+            }
+
+            return await query.ToListAsync(); // Tagastab kõik vastavad broneeringud
         }
 
 
@@ -57,24 +82,29 @@ namespace KooliProjekt.Services
         {
             if (invoice.Id == 0)
             {
+                // Kui ID on 0, siis lisame uue broneeringu
                 _context.Invoices.Add(invoice);
             }
             else
             {
-                var existingInvoices = await _context.Invoices.FindAsync(invoice.Id);
+                // Kui ID on olemas, siis otsime broneeringut ID järgi
+                var existingInvoice = await _context.Invoices.FindAsync(invoice.Id);
 
-                if (existingInvoices != null)
+                if (existingInvoice == null)
                 {
-                    // If it exists, update the entity
-                    _context.Entry(existingInvoices).State = EntityState.Modified;
+                    // Kui broneeringut ei leita, siis ei tee midagi
+                    return;
                 }
-                else
-                {
-                    _context.Invoices.Add(invoice);
-                }
+
+                // Kui broneering on olemas, siis uuendame andmeid
+                existingInvoice.BookingId = invoice.BookingId;
+                existingInvoice.Amount = invoice.Amount;
+                existingInvoice.Description = invoice.Description;
+                existingInvoice.IsPaid = invoice.IsPaid;
             }
+
+            // Tagame, et muudatused salvestatakse ja ID määratakse õigesti
             await _context.SaveChangesAsync();
         }
     }
 }
-

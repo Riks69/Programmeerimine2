@@ -33,10 +33,12 @@ namespace KooliProjekt.Services
         {
             return await _context.Bookings.AnyAsync(c => c.Id == Id);
         }
+
         public async Task<PagedResult<Booking>> List(int page, int pageSize, BookingSearch search = null)
         {
             var query = _context.Bookings.AsQueryable();
 
+            // Kui otsingukriteerium on olemas ja Keyword pole tühi
             if (search != null && !string.IsNullOrEmpty(search.Keyword))
             {
                 query = query.Where(h =>
@@ -45,33 +47,67 @@ namespace KooliProjekt.Services
                     EF.Functions.Like(h.EndTime.ToString(), $"%{search.Keyword}%") ||
                     EF.Functions.Like(h.DistanceKm.ToString(), $"%{search.Keyword}%") ||
                     EF.Functions.Like(h.StartTime.ToString(), $"%{search.Keyword}%"));
-
             }
 
             return await query.GetPagedAsync(page, pageSize);
         }
 
 
+        // Uus Search meetod
+        public async Task<List<Booking>> Search(BookingSearch search)
+        {
+            IQueryable<Booking> query = _context.Bookings;
+
+            // Filtreeri Keyword järgi (see peaks olema esimene, et mitte mõjutada teisi filtreid)
+            if (search != null && !string.IsNullOrEmpty(search.Keyword))
+            {
+                query = query.Where(h =>
+                    EF.Functions.Like(h.UserId.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.CarId.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.EndTime.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.DistanceKm.ToString(), $"%{search.Keyword}%") ||
+                    EF.Functions.Like(h.StartTime.ToString(), $"%{search.Keyword}%"));
+            }
+
+            // Filtreeri Done (lõpetatud) järgi, kui see on määratud
+            if (search?.Done.HasValue == true)
+            {
+                query = query.Where(h => h.IsCompleted == search.Done);
+            }
+
+            return await query.ToListAsync(); // Tagastab kõik vastavad broneeringud
+        }
+
+
+
         public async Task Save(Booking booking)
         {
             if (booking.Id == 0)
             {
+                // Kui ID on 0, siis lisame uue broneeringu
                 _context.Bookings.Add(booking);
             }
             else
             {
-                var existingBookings = await _context.Bookings.FindAsync(booking.Id);
+                // Kui ID on olemas, siis otsime broneeringut ID järgi
+                var existingBooking = await _context.Bookings.FindAsync(booking.Id);
 
-                if (existingBookings != null)
+                if (existingBooking == null)
                 {
-                    // If it exists, update the entity
-                    _context.Entry(existingBookings).State = EntityState.Modified;
+                    // Kui broneeringut ei leita, siis ei tee midagi
+                    return;
                 }
-                else
-                {
-                    _context.Bookings.Add(booking);
-                }
+
+                // Kui broneering on olemas, siis uuendame andmeid
+                existingBooking.CarId = booking.CarId;
+                existingBooking.DistanceKm = booking.DistanceKm;
+                existingBooking.EndTime = booking.EndTime;
+                existingBooking.IsCompleted = booking.IsCompleted;
+                existingBooking.StartTime = booking.StartTime;
+                existingBooking.UserId = booking.UserId;
             }
+
+            // Tagame, et muudatused salvestatakse ja ID määratakse õigesti
             await _context.SaveChangesAsync();
         }
     }
