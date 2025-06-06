@@ -8,6 +8,6 @@ namespace KooliProjekt.PublicAPI.Api
         Task<Result<List<Customer>>> List();
         Task<Result<Customer>> Get(int id);
         Task<Result> Save(Customer customer);
-        Task Delete(int id);
+        Task<Result> Delete(int id);
     }
 }

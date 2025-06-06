@@ -1,7 +1,10 @@
-﻿using System;
+﻿using KooliProjekt.PublicAPI.Api;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Runtime.ConstrainedExecution;
 using System.Threading.Tasks;
 
 namespace KooliProjekt.PublicAPI.Api
@@ -26,11 +29,13 @@ namespace KooliProjekt.PublicAPI.Api
             }
             catch (Exception ex)
             {
-                result.Error = "Ei saa serveriga ühendust. Palun proovi hiljem uuesti.";
+                result.AddError("_", ex.Message);
             }
 
             return result;
+
         }
+
 
         public async Task<Result<Customer>> Get(int id)
         {
@@ -38,56 +43,52 @@ namespace KooliProjekt.PublicAPI.Api
 
             try
             {
-                var response = await _httpClient.GetAsync($"Customers/{id}");
-                if (!response.IsSuccessStatusCode)
-                {
-                    result.Error = $"Kliendi laadimine ebaõnnestus: {response.ReasonPhrase}";
-                    return result;
-                }
-
-                result.Value = await response.Content.ReadFromJsonAsync<Customer>();
+                result.Value = await _httpClient.GetFromJsonAsync<Customer>("Customers/" + id);
             }
             catch (Exception ex)
             {
-                result.Error = ex.Message;
+                result.AddError("_", ex.Message);
             }
 
             return result;
         }
 
-        public async Task<Result> Save(Customer customer)
+        public async Task<Result> Save(Customer list)
         {
             var result = new Result();
 
             try
             {
-                HttpResponseMessage response;
-
-                if (customer.Id == 0)
+                if (list.Id == 0)
                 {
-                    response = await _httpClient.PostAsJsonAsync("Customers", customer);
+                    await _httpClient.PostAsJsonAsync("Customers/", list);
                 }
                 else
                 {
-                    response = await _httpClient.PutAsJsonAsync($"Customers/{customer.Id}", customer);
-                }
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    result.Error = $"Salvestamine ebaõnnestus: {response.ReasonPhrase}";
+                    await _httpClient.PutAsJsonAsync("Customers/" + list.Id, list);
                 }
             }
             catch (Exception ex)
             {
-                result.Error = ex.Message;
+                result.AddError("_", ex.Message);
             }
-
             return result;
         }
 
-        public async Task Delete(int id)
+        public async Task<Result> Delete(int id)
         {
-            await _httpClient.DeleteAsync($"Customers/{id}");
+            var result = new Result();
+
+            try
+            {
+                await _httpClient.DeleteAsync("Customers/" + id);
+            }
+            catch (Exception ex)
+            {
+                result.AddError("_", ex.Message);
+            }
+
+            return result;
         }
     }
 }
