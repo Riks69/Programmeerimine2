@@ -1,0 +1,109 @@
+﻿@page "/create"
+@page "/edit/{Id:int}"
+
+@inject IApiClient apiClient
+@inject NavigationManager NavManager
+
+<h3>@title Customer</h3>
+
+@if (editContext != null)
+{
+    <EditForm EditContext="@editContext" OnValidSubmit="@FormSubmitted">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group row">
+            <label for="name" class="col-sm-2 col-form-label">Name</label>
+            <div class="col-sm-10">
+                <InputText id="name" class="form-control" placeholder="Name" @bind-Value="customer.Name" />
+                <ValidationMessage For="@(() => customer.Name)" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="password" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+                <InputText id="password" type="password" class="form-control" placeholder="Password" @bind-Value="customer.Password" />
+                <ValidationMessage For="@(() => customer.Password)" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="email" class="col-sm-2 col-form-label">Email</label>
+            <div class="col-sm-10">
+                <InputText id="email" type="email" class="form-control" placeholder="Email" @bind-Value="customer.Email" />
+                <ValidationMessage For="@(() => customer.Email)" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label">Registered</label>
+            <div class="col-sm-10">
+                <InputCheckbox class="form-check-input" @bind-Value="customer.IsRegistered" />
+                <ValidationMessage For="@(() => customer.IsRegistered)" />
+            </div>
+        </div>
+
+        <div class="form-group row" style="margin-top:20px">
+            <label class="col-sm-2 col-form-label"></label>
+            <div class="col-sm-10">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Customer customer = new Customer();
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
+    private string title = "Edit";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id == 0)
+        {
+            editContext = new EditContext(customer);
+            messageStore = new ValidationMessageStore(editContext);
+
+            title = "Create new";
+            return;
+        }
+
+        var result = await apiClient.Get(Id);
+        if (result.HasError)
+        {
+            AddValidationErrors(result);
+            return;
+        }
+        customer = result.Value;
+
+        editContext = new EditContext(customer);
+        messageStore = new ValidationMessageStore(editContext);
+    }
+
+    private async Task FormSubmitted()
+    {
+        var result = await apiClient.Save(customer);
+        if (result.HasError)
+        {
+            AddValidationErrors(result);
+            return;
+        }
+
+        NavManager.NavigateTo("/");
+    }
+
+    private void AddValidationErrors(Result result)
+    {
+        foreach (var error in result.Errors)
+            foreach (var message in error.Value)
+            {
+                var id = new FieldIdentifier(customer, error.Key);
+                messageStore.Add(id, message);
+            }
+    }
+}

@@ -1,7 +1,7 @@
 ﻿using KooliProjekt.WpfApp;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
-using KooliProjekt.WpfApp.Api;
+using KooliProjekt.PublicAPI.Api;
 
 namespace KooliProjekt.WpfApp
 {

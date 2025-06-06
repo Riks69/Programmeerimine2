@@ -1,0 +1,76 @@
+﻿@page "/"
+
+<PageTitle>Customers</PageTitle>
+
+<h1>Customers</h1>
+
+<p>Here are the customers.</p>
+
+@if (Customers == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p><a class="btn btn-primary" href="/create">Add new</a></p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Password</th>
+                <th>IsRegistered</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in Customers)
+            {
+                <tr>
+                    <td>@customer.Name</td>
+                    <td>@customer.Email</td>
+                    <td>@customer.Password</td>
+                    <td>@customer.IsRegistered</td>
+                    <td>@customer.IsRegistered</td>
+                    <td>
+                        <a href="/edit/@customer.Id" class="btn btn-primary">Edit</a>
+                        <button class="btn btn-primary" @onclick="() => Delete(customer.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code
+{
+    [Inject]
+    protected IApiClient ApiClient { get; set; }
+
+    [Inject]
+    protected IJSRuntime JsRuntime { get; set; }
+
+    [Inject]
+    protected NavigationManager NavManager { get; set; }
+
+    protected List<Customer> Customers { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.List();
+        Customers = result.Value;
+    }
+
+    protected async Task Delete(int id)
+    {
+        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        await ApiClient.Delete(id);
+
+        NavManager.Refresh();
+    }
+}

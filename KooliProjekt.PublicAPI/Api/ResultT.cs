@@ -1,4 +1,4 @@
-﻿namespace KooliProjekt.WinFormsApp.Api
+﻿namespace KooliProjekt.PublicAPI.Api
 {
     public class Result<T> : Result
     {

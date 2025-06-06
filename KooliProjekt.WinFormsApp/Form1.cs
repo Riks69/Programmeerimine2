@@ -1,4 +1,4 @@
-using KooliProjekt.WinFormsApp.Api;
+using KooliProjekt.PublicAPI.Api;
 
 namespace KooliProjekt.WinFormsApp
 {
